@@ -1,111 +1,47 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  motion,
-  MotionValue,
-  useTransform,
-  useMotionValueEvent,
-  useMotionValue,
-} from "framer-motion";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
 
 interface HandwritingTextProps {
   onComplete?: () => void;
   className?: string;
-  progress?: MotionValue<number>;
-  drawRange?: [number, number];
+  triggerAnimation?: boolean;
 }
 
 /**
  * @kokonutd/components/hand-writing-text
  * Cursive calligraphy SVG path animation for "BH PLANNER".
- * Supports BOTH:
- * 1. Scroll-driven drawing bound to scroll progress (scrubs forward and back)
- * 2. Automatic keyframe animation when no progress value is provided
- *
- * Theme-aware:
- * - "BH": Violet Bloom accent (#8b5cf6)
- * - "PLANNER": stroke="currentColor" (text-foreground) -> dark ink in light mode, bright in dark mode
- * - Underline: Violet Bloom accent (#8b5cf6)
+ * Actively animates path strokes when scrolled into view:
+ * 1. "BH" — Violet Bloom Primary (#8b5cf6) — duration 0.8s
+ * 2. "PLANNER" — Foreground Ink: stroke="currentColor" (theme-adaptive) — duration 1.1s, delay 0.5s
+ * 3. Underline flourish — Violet Bloom Primary (#8b5cf6) — duration 0.5s, delay 1.6s
+ * 4. Fires onComplete callback to reveal the JOIN button.
  */
 export function HandwritingText({
   onComplete,
   className = "",
-  progress,
-  drawRange = [0.55, 0.82],
+  triggerAnimation,
 }: HandwritingTextProps) {
-  const [completed, setCompleted] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { amount: 0.3, once: false });
+  const shouldAnimate = triggerAnimation !== undefined ? triggerAnimation : isInView;
+  const [hasAnimated, setHasAnimated] = useState(false);
 
-  // Standalone fallback timeout
   useEffect(() => {
-    if (progress) return;
-    const timer = setTimeout(() => {
-      if (!completed) {
-        setCompleted(true);
+    if (shouldAnimate && !hasAnimated) {
+      const timer = setTimeout(() => {
+        setHasAnimated(true);
         onComplete?.();
-      }
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, [completed, onComplete, progress]);
-
-  const [start, end] = drawRange;
-  const span = end - start;
-
-  // Segment allocations within drawRange:
-  // BH: start -> start + 0.35 * span
-  // PLANNER: start + 0.35 * span -> start + 0.85 * span
-  // Underline: start + 0.85 * span -> end
-  const bhStart = start;
-  const bhEnd = start + 0.35 * span;
-  const pStart = bhEnd;
-  const pEnd = start + 0.85 * span;
-  const uStart = pEnd;
-  const uEnd = end;
-
-  // Fallback motion value when progress is not passed
-  const fallbackProgress = useMotionValue(1);
-  const activeProgress = progress || fallbackProgress;
-
-  const overallOpacity = useTransform(
-    activeProgress,
-    [Math.max(0, start - 0.08), start],
-    [0.1, 1]
-  );
-
-  // BH Paths
-  const bh1 = useTransform(activeProgress, [bhStart, bhStart + 0.15 * span], [0, 1]);
-  const bh2 = useTransform(activeProgress, [bhStart + 0.08 * span, bhStart + 0.22 * span], [0, 1]);
-  const bh3 = useTransform(activeProgress, [bhStart + 0.18 * span, bhStart + 0.28 * span], [0, 1]);
-  const bh4 = useTransform(activeProgress, [bhStart + 0.24 * span, bhStart + 0.31 * span], [0, 1]);
-  const bh5 = useTransform(activeProgress, [bhStart + 0.28 * span, bhEnd], [0, 1]);
-
-  // PLANNER Paths
-  const pSpanPerLetter = (pEnd - pStart) / 7;
-  const plP1 = useTransform(activeProgress, [pStart, pStart + pSpanPerLetter * 0.5], [0, 1]);
-  const plP2 = useTransform(activeProgress, [pStart + pSpanPerLetter * 0.4, pStart + pSpanPerLetter], [0, 1]);
-  const plL = useTransform(activeProgress, [pStart + pSpanPerLetter, pStart + pSpanPerLetter * 2], [0, 1]);
-  const plA = useTransform(activeProgress, [pStart + pSpanPerLetter * 2, pStart + pSpanPerLetter * 3], [0, 1]);
-  const plN1 = useTransform(activeProgress, [pStart + pSpanPerLetter * 3, pStart + pSpanPerLetter * 4], [0, 1]);
-  const plN2 = useTransform(activeProgress, [pStart + pSpanPerLetter * 4, pStart + pSpanPerLetter * 5], [0, 1]);
-  const plE = useTransform(activeProgress, [pStart + pSpanPerLetter * 5, pStart + pSpanPerLetter * 6], [0, 1]);
-  const plR = useTransform(activeProgress, [pStart + pSpanPerLetter * 6, pEnd], [0, 1]);
-
-  // Underline Flourish
-  const underFlourish = useTransform(activeProgress, [uStart, uEnd], [0, 1]);
-
-  // Notify onComplete when scroll reaches completion of flourish
-  useMotionValueEvent(underFlourish, "change", (latest) => {
-    if (latest >= 0.95 && !completed) {
-      setCompleted(true);
-      onComplete?.();
+      }, 2100);
+      return () => clearTimeout(timer);
     }
-  });
-
-  const isScrollDriven = Boolean(progress);
+  }, [shouldAnimate, hasAnimated, onComplete]);
 
   return (
-    <motion.div
-      style={isScrollDriven ? { opacity: overallOpacity } : undefined}
+    <div
+      ref={ref}
       className={`relative inline-flex flex-col items-center select-none w-full max-w-2xl px-2 text-foreground ${className}`}
     >
       <span className="sr-only">BH PLANNER</span>
@@ -124,42 +60,37 @@ export function HandwritingText({
           {/* 'B' vertical stem */}
           <motion.path
             d="M 40 28 L 40 88"
-            style={isScrollDriven ? { pathLength: bh1 } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.45, ease: "easeInOut" }}
           />
           {/* 'B' cursive loops */}
           <motion.path
             d="M 38 30 C 72 16 92 36 68 54 C 48 60 40 56 40 56 C 75 56 96 74 72 88 C 50 94 40 88 56 88"
-            style={isScrollDriven ? { pathLength: bh2 } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.5, delay: 0.15, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.55, delay: 0.12, ease: "easeInOut" }}
           />
           {/* 'H' left stem */}
           <motion.path
             d="M 108 26 L 108 88"
-            style={isScrollDriven ? { pathLength: bh3 } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.35, delay: 0.35, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.4, delay: 0.28, ease: "easeInOut" }}
           />
           {/* 'H' cross-bridge */}
           <motion.path
             d="M 105 56 C 122 52 136 53 150 55"
-            style={isScrollDriven ? { pathLength: bh4 } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.25, delay: 0.5, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.25, delay: 0.42, ease: "easeInOut" }}
           />
           {/* 'H' right stem & exit */}
           <motion.path
             d="M 150 26 L 150 88 C 150 94 158 90 168 84"
-            style={isScrollDriven ? { pathLength: bh5 } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.35, delay: 0.6, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.4, delay: 0.5, ease: "easeInOut" }}
           />
         </g>
 
@@ -170,66 +101,58 @@ export function HandwritingText({
           {/* 'P' stem */}
           <motion.path
             d="M 205 92 L 205 38"
-            style={isScrollDriven ? { pathLength: plP1 } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.25, delay: 0.8, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.3, delay: 0.65, ease: "easeInOut" }}
           />
           {/* 'P' loop */}
           <motion.path
             d="M 205 40 C 205 26 238 26 238 52 C 238 68 205 68 205 68"
-            style={isScrollDriven ? { pathLength: plP2 } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.25, delay: 0.9, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.3, delay: 0.78, ease: "easeInOut" }}
           />
           {/* 'L' cursive loop */}
           <motion.path
             d="M 242 88 C 255 88 262 82 268 48 C 272 26 264 26 260 40 C 254 64 260 88 288 88"
-            style={isScrollDriven ? { pathLength: plL } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.3, delay: 1.05, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.35, delay: 0.92, ease: "easeInOut" }}
           />
           {/* 'A' loop */}
           <motion.path
             d="M 308 68 C 296 58 290 70 296 82 C 302 90 320 90 326 78 M 326 58 L 326 88 C 326 92 332 89 340 84"
-            style={isScrollDriven ? { pathLength: plA } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.3, delay: 1.25, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.35, delay: 1.1, ease: "easeInOut" }}
           />
           {/* First 'N' arches */}
           <motion.path
             d="M 352 64 L 352 88 M 352 70 C 362 58 380 58 382 88"
-            style={isScrollDriven ? { pathLength: plN1 } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.25, delay: 1.45, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.3, delay: 1.28, ease: "easeInOut" }}
           />
           {/* Second 'N' arches */}
           <motion.path
             d="M 396 64 L 396 88 M 396 70 C 406 58 424 58 426 88"
-            style={isScrollDriven ? { pathLength: plN2 } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.25, delay: 1.6, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.3, delay: 1.42, ease: "easeInOut" }}
           />
           {/* 'E' loop */}
           <motion.path
             d="M 440 88 C 458 88 464 68 450 60 C 435 52 430 72 444 84 C 452 90 464 88 472 84"
-            style={isScrollDriven ? { pathLength: plE } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.25, delay: 1.75, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.3, delay: 1.56, ease: "easeInOut" }}
           />
           {/* 'R' arch & baseline */}
           <motion.path
             d="M 484 64 L 484 88 M 482 70 C 492 58 510 62 514 72 C 514 80 512 88 524 88"
-            style={isScrollDriven ? { pathLength: plR } : undefined}
-            initial={isScrollDriven ? undefined : { pathLength: 0 }}
-            animate={isScrollDriven ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.25, delay: 1.9, ease: "easeInOut" }}
+            initial={{ pathLength: 0 }}
+            animate={shouldAnimate ? { pathLength: 1 } : { pathLength: 0 }}
+            transition={{ duration: 0.3, delay: 1.7, ease: "easeInOut" }}
           />
         </g>
 
@@ -242,18 +165,49 @@ export function HandwritingText({
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={isScrollDriven ? { pathLength: underFlourish } : undefined}
-          initial={isScrollDriven ? undefined : { pathLength: 0, opacity: 0 }}
-          animate={isScrollDriven ? undefined : { pathLength: 1, opacity: 0.9 }}
-          transition={{ duration: 0.5, delay: 2.0, ease: "easeOut" }}
-          onAnimationComplete={isScrollDriven ? undefined : () => {
-            if (!completed) {
-              setCompleted(true);
-              onComplete?.();
-            }
-          }}
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={shouldAnimate ? { pathLength: 1, opacity: 0.9 } : { pathLength: 0, opacity: 0 }}
+          transition={{ duration: 0.5, delay: 1.85, ease: "easeOut" }}
         />
       </svg>
-    </motion.div>
+
+      {/* Traveling Calligraphy Fountain Pen Nib Cursor */}
+      <motion.div
+        aria-hidden="true"
+        initial={{ opacity: 0, x: 25, y: 15 }}
+        animate={
+          shouldAnimate
+            ? {
+                opacity: [0, 1, 1, 1, 1, 0],
+                x: [35, 130, 220, 370, 510, 660],
+                y: [28, 50, 38, 60, 70, 106],
+                rotate: [15, 25, 20, 18, 22, 12],
+              }
+            : { opacity: 0 }
+        }
+        transition={{
+          duration: 2.3,
+          ease: "easeInOut",
+        }}
+        className="absolute top-0 left-0 pointer-events-none text-accent drop-shadow-md -translate-x-2 -translate-y-4"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-accent fill-canvas drop-shadow"
+        >
+          <path d="m12 19 7-7 3 3-7 7-3-3z" />
+          <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+          <path d="m2 2 7.586 7.586" />
+          <circle cx="11" cy="11" r="2" fill="currentColor" />
+        </svg>
+      </motion.div>
+    </div>
   );
 }

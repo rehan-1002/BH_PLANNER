@@ -58,6 +58,24 @@ html.light .glass-panel {
   box-shadow: 0 8px 30px 0 rgba(139, 92, 246, 0.08);
 }
 
+/* ScrollFloat Kinetic Typography Classes */
+.scroll-float {
+  overflow: hidden;
+}
+
+.scroll-float-text {
+  display: inline-block;
+  font-size: clamp(2.2rem, 7.5vw, 6.5rem);
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+}
+
+.char {
+  display: inline-block;
+}
+
 * {
   box-sizing: border-box;
 }

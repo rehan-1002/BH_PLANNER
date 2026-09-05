@@ -56,18 +56,18 @@ Next Priority:      Run supabase-schema.sql in Supabase SQL editor and connect l
 - **Behavior:** Renders the canonical square violet badge asset directly via Next.js Image inside a frosted panel badge (`rgba(26, 21, 38, 0.55)`). Fixed at top-right in the global header dock. No SVG redrawing, no text substitution, no variant creation.
 - **Validation:** Verified via production build static asset bundling and HTML output inspection.
 
-### 3. Landing Page Sequence (@kumail_ali_r & @kokonutd)
+### 3. Landing Page Sequence (GSAP ScrollFloat & @kokonutd Animated Handwriting)
 - **Status:** Implemented & Verified
 - **Route:** `/`
-- **Files:** `app/page.tsx`, `components/ui/text-reveal.tsx`, `components/ui/handwriting.tsx`
-- **Behavior:** Renders the documented reveal sequence:
-  1. `Unorganised planning?`
-  2. `No schedule?`
-  3. `ALL solution is here` (via `@kumail_ali_r` masked upward roll with staggered deblurring from `filter: blur(6px)` to `blur(0px)`)
-  4. Handwriting reveal of `BH PLANNER` (via `@kokonutd` animated SVG cursive underline flourish with travelling fountain pen nib cursor, "BH" in primary accent `#8b5cf6`, "PLANNER" in foreground)
-  5. `JOIN` CTA navigating to `/auth`.
-  Full-width layout, no horizontal scroll, clean editorial typography, zero opacity lockout.
-- **Validation:** HTML render and production bundle verified.
+- **Files:** `app/page.tsx`, `components/ui/scroll-float.tsx`, `components/ui/handwriting.tsx`, `components/ui/button-with-icon.tsx`, `components/ui/auth-switch.tsx`, `components/ui/kinetic-nav.tsx`
+- **Behavior:** Renders the dynamic scroll-driven storytelling sequence:
+  1. `Unorganised planning?` (Kinetic character float with GSAP ScrollTrigger physics: `yPercent: 120 -> 0`, `scaleY: 2.3 -> 1`, `scaleX: 0.7 -> 1`, with load entrance physics)
+  2. As user scrolls, Scene 1 scrolls UP and out; `No schedule?` floats up and scales into the center via GSAP ScrollTrigger scrub
+  3. As user scrolls further, Scene 2 scrolls UP and out; `ALL solution is here` rises into the center with "ALL" in `#8b5cf6` violet accent
+  4. As user scrolls further, Scene 3 scrolls UP and out; `BH PLANNER` arrives in the center and actively animates its cursive calligraphy strokes (B vertical/loops, H stems/bridge, P-L-A-N-N-E-R cursive glyphs, flourish underline) accompanied by a traveling fountain pen nib cursor
+  5. `JOIN` CTA button (`@shadcnspace/components/button-witn-icon`) floats in, smoothly scrolling down to the `@appvibed01` sliding curtain authentication gateway
+  Full-width layout, no horizontal scroll, high-contrast Dark & Light theme visibility, zero opacity lockouts.
+- **Validation:** Typecheck and production build verified cleanly.
 
 ### 4. Authentication Gateway & Split Sliding Card (@appvibed01)
 - **Status:** Implemented & Verified

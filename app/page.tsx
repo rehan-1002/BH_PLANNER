@@ -1,52 +1,16 @@
 "use client";
 
-import { useRef } from "react";
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { KineticNav } from "@/components/ui/kinetic-nav";
-import { TextReveal } from "@/components/ui/text-reveal";
+import { ScrollFloat } from "@/components/ui/scroll-float";
 import { HandwritingText } from "@/components/ui/handwriting";
 import { ButtonWithIcon } from "@/components/ui/button-with-icon";
 import { AuthSwitch } from "@/components/ui/auth-switch";
 
 export default function LandingPage() {
-  const trackRef = useRef<HTMLDivElement>(null);
-
-  // Measure scroll progress across the pinned storytelling track
-  const { scrollYProgress } = useScroll({
-    target: trackRef,
-    offset: ["start start", "end end"],
-  });
-
-  // Storytelling stages mapped across track [0, 1]:
-  // 1. "Unorganised planning?": [0.02, 0.16]
-  // 2. "No schedule?": [0.16, 0.30]
-  // 3. "ALL solution is here": [0.30, 0.46]
-  // 4. "BH PLANNER" handwriting: [0.48, 0.72]
-  // 5. ButtonWithIcon "JOIN": [0.70, 0.78]
-
-  const problemStatements = [
-    "Unorganised planning?",
-    "No schedule?",
-    "ALL solution is here",
-  ];
-
-  const statementRanges: [number, number][] = [
-    [0.02, 0.16],
-    [0.16, 0.30],
-    [0.30, 0.46],
-  ];
-
-  // CTA Join button & subtitle transforms
-  const joinOpacity = useTransform(scrollYProgress, [0.70, 0.78], [0, 1]);
-  const joinY = useTransform(scrollYProgress, [0.70, 0.78], [18, 0]);
-  const subtitleOpacity = useTransform(scrollYProgress, [0.66, 0.75], [0, 1]);
-
-  // Initial scroll indicator prompt (fades away as soon as user begins scrolling)
-  const scrollPromptOpacity = useTransform(scrollYProgress, [0.0, 0.05], [1, 0]);
-
   const scrollToAuth = () => {
     const authEl = document.getElementById("auth-gateway");
     if (authEl) {
@@ -57,7 +21,7 @@ export default function LandingPage() {
   return (
     <div className="relative w-full min-h-screen bg-canvas text-foreground selection:bg-accent/30 selection:text-foreground">
       {/* =================================================================== */}
-      {/* FIXED GLOBAL HEADERS                                               */}
+      {/* FIXED GLOBAL HEADER ANCHORS                                         */}
       {/* =================================================================== */}
       {/* Top-Left: Theme Toggle */}
       <div className="fixed top-5 left-6 z-50">
@@ -85,69 +49,122 @@ export default function LandingPage() {
       </div>
 
       {/* =================================================================== */}
-      {/* 1. SCROLL-DRIVEN PINNED STORYTELLING TRACK (min-h-[420vh])           */}
+      {/* SCENE 1: "Unorganised planning?"                                    */}
       {/* =================================================================== */}
-      <div ref={trackRef} className="relative w-full min-h-[420vh]">
-        <div className="sticky top-0 h-screen w-full flex flex-col justify-center items-center px-4 sm:px-6 overflow-hidden">
-          {/* Main Editorial Container */}
-          <div className="w-full max-w-3xl flex flex-col items-center text-center space-y-8 z-10">
-            {/* Sequence 1-3: Scroll-driven Text Reveal (@kumail_ali_r) */}
-            <TextReveal
-              lines={problemStatements}
-              progress={scrollYProgress}
-              ranges={statementRanges}
-              className="items-center"
-            />
-
-            {/* Sequence 4: Scroll-driven Handwriting Reveal of "BH PLANNER" (@kokonutd) */}
-            <div className="py-2 w-full flex justify-center">
-              <HandwritingText
-                progress={scrollYProgress}
-                drawRange={[0.48, 0.72]}
-                onComplete={() => {}}
-              />
-            </div>
-
-            {/* Subtitle explaining the system */}
-            <motion.p
-              style={{ opacity: subtitleOpacity }}
-              className="text-xs sm:text-sm md:text-base text-muted max-w-lg font-light leading-relaxed px-4"
-            >
-              Adaptive study scheduling around fixed college commitments, commute realities, syllabus coverage, and approaching exam deadlines.
-            </motion.p>
-
-            {/* Sequence 5: Button With Icon (@shadcnspace/components/button-witn-icon) */}
-            <motion.div
-              style={{ opacity: joinOpacity, y: joinY }}
-              className="pt-2"
-            >
-              <ButtonWithIcon
-                onClick={scrollToAuth}
-                ariaLabel="Proceed to Authentication Gateway"
-              >
-                JOIN
-              </ButtonWithIcon>
-            </motion.div>
-          </div>
-
-          {/* Initial Scroll Hint Prompt */}
-          <motion.div
-            style={{ opacity: scrollPromptOpacity }}
-            className="absolute bottom-8 flex flex-col items-center space-y-1.5 text-xs text-muted font-mono pointer-events-none select-none"
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center">
+        <div className="max-w-4xl mx-auto flex flex-col items-center">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-accent font-semibold mb-4 px-3 py-1 rounded-full glass-panel">
+            Phase 01 · The Reality
+          </span>
+          <ScrollFloat
+            animateOnMount={true}
+            animationDuration={1.1}
+            stagger={0.035}
+            containerClassName="w-full"
+            textClassName="text-foreground"
           >
-            <span className="tracking-widest uppercase text-[10px]">Scroll to reveal story</span>
-            <ChevronDown className="w-4 h-4 text-accent animate-bounce" />
-          </motion.div>
-
-          {/* Subtle Stage Progress Indicator */}
-          <div className="absolute bottom-4 inset-x-0 flex justify-center text-[10px] text-muted/50 font-mono select-none">
-            <span>BH PLANNER · TIER-1 STORYLINE</span>
-          </div>
+            Unorganised planning?
+          </ScrollFloat>
         </div>
-      </div>
+
+        {/* Scroll Cue Prompt */}
+        <div className="absolute bottom-10 inset-x-0 flex flex-col items-center space-y-2 text-xs text-muted font-mono pointer-events-none select-none">
+          <span className="tracking-widest uppercase text-[10px]">Scroll down to explore</span>
+          <ChevronDown className="w-4 h-4 text-accent animate-bounce" />
+        </div>
+      </section>
 
       {/* =================================================================== */}
-      {/* 2. AUTHENTICATION GATEWAY (@appvibed01/components/auth-switch)       */}
+      {/* SCENE 2: "No schedule?"                                             */}
+      {/* =================================================================== */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center">
+        <div className="max-w-4xl mx-auto flex flex-col items-center">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-accent font-semibold mb-4 px-3 py-1 rounded-full glass-panel">
+            Phase 02 · The Barrier
+          </span>
+          <ScrollFloat
+            scrollStart="top bottom-=15%"
+            scrollEnd="center center"
+            stagger={0.04}
+            containerClassName="w-full"
+            textClassName="text-foreground"
+          >
+            No schedule?
+          </ScrollFloat>
+        </div>
+      </section>
+
+      {/* =================================================================== */}
+      {/* SCENE 3: "ALL solution is here"                                     */}
+      {/* =================================================================== */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center">
+        <div className="max-w-4xl mx-auto flex flex-col items-center">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-accent font-semibold mb-4 px-3 py-1 rounded-full glass-panel">
+            Phase 03 · The Resolution
+          </span>
+          <ScrollFloat
+            highlightWord="ALL"
+            scrollStart="top bottom-=15%"
+            scrollEnd="center center"
+            stagger={0.035}
+            containerClassName="w-full"
+            textClassName="text-foreground"
+          >
+            ALL solution is here
+          </ScrollFloat>
+        </div>
+      </section>
+
+      {/* =================================================================== */}
+      {/* SCENE 4: ANIMATED HANDWRITING SVG + JOIN BUTTON                     */}
+      {/* =================================================================== */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center">
+        <div className="w-full max-w-3xl mx-auto flex flex-col items-center space-y-8">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-accent font-semibold px-3 py-1 rounded-full glass-panel">
+            Phase 04 · The Instrument
+          </span>
+
+          {/* Actively Animated SVG Calligraphy Drawing */}
+          <div className="w-full flex justify-center py-2">
+            <HandwritingText />
+          </div>
+
+          {/* Core Value Proposition Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ amount: 0.5, once: false }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-sm md:text-base text-muted max-w-lg font-light leading-relaxed px-4"
+          >
+            Adaptive study scheduling around fixed college commitments, commute realities, syllabus coverage, and approaching exam deadlines.
+          </motion.p>
+
+          {/* JOIN CTA Button (@shadcnspace/components/button-witn-icon) */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ amount: 0.5, once: false }}
+            transition={{ duration: 0.5, delay: 0.8 }}
+            className="pt-2"
+          >
+            <ButtonWithIcon
+              onClick={scrollToAuth}
+              ariaLabel="Proceed to Authentication Gateway"
+            >
+              JOIN
+            </ButtonWithIcon>
+          </motion.div>
+        </div>
+
+        {/* Subtle Section Footnote */}
+        <div className="absolute bottom-8 inset-x-0 flex justify-center text-xs text-muted/60 font-mono select-none">
+          <span>BH PLANNER · DETERMINISTIC ACADEMIC ENGINE</span>
+        </div>
+      </section>
+
+      {/* =================================================================== */}
+      {/* SCENE 5: AUTHENTICATION GATEWAY (@appvibed01/components/auth-switch) */}
       {/* =================================================================== */}
       <section
         id="auth-gateway"
