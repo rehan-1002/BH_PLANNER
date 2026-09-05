@@ -4,7 +4,7 @@ import { IntakeContext, Timetable, TimetableSchema } from "../schema";
 
 export interface PlanGenerationResult {
   timetable: Timetable;
-  providerUsed: "gemini-1.5-flash" | "cohere-command-r";
+  providerUsed: string;
   fallbackOccurred: boolean;
   rawResponseLength: number;
 }
@@ -21,7 +21,7 @@ function cleanJsonString(raw: string): string {
 
 export async function generatePlan(intake: IntakeContext): Promise<PlanGenerationResult> {
   let rawJson: string | null = null;
-  let providerUsed: "gemini-1.5-flash" | "cohere-command-r" = "gemini-1.5-flash";
+  let providerUsed = "gemini-3.5-flash-lite";
   let fallbackOccurred = false;
 
   try {
@@ -29,7 +29,7 @@ export async function generatePlan(intake: IntakeContext): Promise<PlanGeneratio
   } catch (geminiError: any) {
     console.warn("[AI Controller] Gemini attempt failed, falling back to Cohere:", geminiError?.message);
     fallbackOccurred = true;
-    providerUsed = "cohere-command-r";
+    providerUsed = "cohere-command-r7b";
     try {
       rawJson = await callCohere(intake);
     } catch (cohereError: any) {

@@ -22,7 +22,7 @@ Generate a realistic 7-day timetable starting from today.
 Output ONLY a raw JSON object conforming strictly to the canonical timetable structure:
 {
   "plan_id": "bh_plan_<random_string>",
-  "generated_provider": "cohere-command-r",
+  "generated_provider": "cohere-command-r7b",
   "schedule": [
     {
       "date": "YYYY-MM-DD",
@@ -51,11 +51,11 @@ Rules:
 5. Output valid JSON only, no preamble, no explanations, no markdown formatting.`;
 
   const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("Cohere timeout (>25s)")), 25000)
+    setTimeout(() => reject(new Error("Cohere timeout (>30s)")), 30000)
   );
 
   const generatePromise = cohere.chat({
-    model: "command-r-08-2024",
+    model: "command-r7b-12-2024",
     message: prompt,
     temperature: 0.2,
   }).then((response) => {

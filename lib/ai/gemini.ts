@@ -9,7 +9,7 @@ export async function callGemini(intake: IntakeContext): Promise<string> {
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: "gemini-3.5-flash-lite",
     generationConfig: {
       responseMimeType: "application/json",
       temperature: 0.2,
@@ -27,7 +27,7 @@ Generate a realistic 7-day timetable starting from today.
 Output ONLY a JSON object that strictly conforms to this canonical timetable structure:
 {
   "plan_id": "bh_plan_<random_string>",
-  "generated_provider": "gemini-1.5-flash",
+  "generated_provider": "gemini-3.5-flash-lite",
   "schedule": [
     {
       "date": "YYYY-MM-DD",
@@ -56,9 +56,9 @@ Rules:
 5. Schedule at least one unlocked "buffer" block per day or every two days to allow deterministic Tier-1 spillover.
 6. Do NOT include any markdown code blocks or commentary. Return raw valid JSON only.`;
 
-  // Timeout guard (25 seconds for structured timetable generation)
+  // Timeout guard (30 seconds)
   const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("Gemini timeout (>25s)")), 25000)
+    setTimeout(() => reject(new Error("Gemini timeout (>30s)")), 30000)
   );
 
   const generatePromise = model.generateContent(prompt).then((result) => {
