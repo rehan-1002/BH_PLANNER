@@ -51,7 +51,7 @@ export default function SignUpPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard/overview`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard/overview`,
         },
       });
 

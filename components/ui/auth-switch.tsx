@@ -91,7 +91,7 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
           data: {
             username: signUpUsername || signUpEmail.split("@")[0],
           },
-          emailRedirectTo: `${window.location.origin}/dashboard/overview`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard/overview`,
         },
       });
 
