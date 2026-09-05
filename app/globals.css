@@ -5,7 +5,7 @@
 :root {
   /* Default Dark Mode (Violet Bloom baseline - flat/no gradient) */
   --canvas: #0d0b14;
-  --panel: rgba(26, 21, 38, 0.55);
+  --panel: rgba(26, 21, 38, 0.65);
   --panel-solid: #1a1526;
   --border: rgba(147, 112, 219, 0.18);
   --border-strong: rgba(147, 112, 219, 0.35);
@@ -19,22 +19,22 @@
 }
 
 html.light {
-  /* Violet Frost Light Mode */
+  /* Violet Frost Light Mode - Crystal clear contrast and frosted glass */
   --canvas: #f8f7fc;
-  --panel: rgba(255, 255, 255, 0.75);
+  --panel: rgba(255, 255, 255, 0.88);
   --panel-solid: #ffffff;
-  --border: rgba(139, 92, 246, 0.15);
-  --border-strong: rgba(139, 92, 246, 0.3);
+  --border: rgba(139, 92, 246, 0.22);
+  --border-strong: rgba(139, 92, 246, 0.45);
   --accent: #8b5cf6;
-  --accent-muted: rgba(139, 92, 246, 0.1);
-  --foreground: #1a1526;
-  --muted: #6b6380;
-  --muted-subtle: #d0c9df;
+  --accent-muted: rgba(139, 92, 246, 0.12);
+  --foreground: #120e1f;
+  --muted: #5d546f;
+  --muted-subtle: #cac1db;
 }
 
 html.dark {
   --canvas: #0d0b14;
-  --panel: rgba(26, 21, 38, 0.55);
+  --panel: rgba(26, 21, 38, 0.65);
   --panel-solid: #1a1526;
   --border: rgba(147, 112, 219, 0.18);
   --border-strong: rgba(147, 112, 219, 0.35);
@@ -43,6 +43,19 @@ html.dark {
   --foreground: #f3f0f9;
   --muted: #a79fb7;
   --muted-subtle: #4e475c;
+}
+
+/* Reusable Frosted Glass Utility */
+.glass-panel {
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+}
+
+html.light .glass-panel {
+  box-shadow: 0 8px 30px 0 rgba(139, 92, 246, 0.08);
 }
 
 * {

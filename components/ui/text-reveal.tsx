@@ -6,6 +6,8 @@ import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
 interface TextRevealProps {
   lines?: string[];
   className?: string;
+  progress?: MotionValue<number>;
+  ranges?: [number, number][];
 }
 
 interface WordProps {
@@ -18,6 +20,7 @@ interface WordProps {
 
 /**
  * Individual Word with scroll-scrubbed deblur and opacity transition
+ * Adheres to @kumail_ali_r/components/text-reveal-animation physics
  */
 function ScrubbedWord({
   word,
@@ -26,8 +29,8 @@ function ScrubbedWord({
   isHighlight,
   isSolution,
 }: WordProps) {
-  const opacity = useTransform(progress, range, [0.1, 1]);
-  const y = useTransform(progress, range, [12, 0]);
+  const opacity = useTransform(progress, range, [0.15, 1]);
+  const y = useTransform(progress, range, [14, 0]);
   const blurValue = useTransform(progress, range, [8, 0]);
   const filter = useTransform(blurValue, (v) => `blur(${v}px)`);
 
@@ -35,12 +38,12 @@ function ScrubbedWord({
     <span className="inline-block overflow-hidden align-middle py-0.5">
       <motion.span
         style={{ opacity, y, filter }}
-        className={`inline-block text-2xl sm:text-3xl md:text-4xl font-normal tracking-tight ${
+        className={`inline-block text-2xl sm:text-3xl md:text-5xl font-normal tracking-tight ${
           isHighlight
             ? "text-accent font-bold"
             : isSolution
             ? "text-foreground font-medium"
-            : "text-muted"
+            : "text-foreground font-light"
         }`}
       >
         {word}
@@ -51,9 +54,8 @@ function ScrubbedWord({
 
 /**
  * @kumail_ali_r/components/text-reveal-animation
- * Scroll-scrubbed text reveal bound tightly to container scroll progress
- * via Framer Motion's useScroll({ target: containerRef, offset: ["start end", "end start"] }).
- * Progressively deblurs words (filter: blur(8px) -> blur(0px), opacity: 0.1 -> 1, translateY: 12px -> 0px).
+ * Scroll-driven text reveal bound to scroll progress.
+ * Sequentially deblurs words (filter: blur(8px) -> blur(0px), opacity: 0.15 -> 1, translateY: 14px -> 0px).
  */
 export function TextReveal({
   lines = [
@@ -62,30 +64,37 @@ export function TextReveal({
     "ALL solution is here",
   ],
   className = "",
+  progress: externalProgress,
+  ranges,
 }: TextRevealProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const localContainerRef = useRef<HTMLDivElement>(null);
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
+  const { scrollYProgress: localProgress } = useScroll({
+    target: localContainerRef,
     offset: ["start end", "end start"],
   });
 
-  // Calculate total words across all lines to distribute progress segments
-  const allWordsCount = lines.reduce(
-    (count, line) => count + line.split(" ").length,
-    0
-  );
+  const scrollProgress = externalProgress || localProgress;
 
-  let globalWordIndex = 0;
+  // Default stage ranges across 3 lines if not explicitly passed
+  const defaultRanges: [number, number][] = [
+    [0.02, 0.18], // Line 1: Unorganised planning?
+    [0.18, 0.35], // Line 2: No schedule?
+    [0.35, 0.52], // Line 3: ALL solution is here
+  ];
+
+  const lineRanges = ranges || defaultRanges;
 
   return (
     <div
-      ref={containerRef}
+      ref={localContainerRef}
       className={`flex flex-col space-y-3 sm:space-y-4 ${className}`}
     >
       {lines.map((line, lineIndex) => {
         const words = line.split(" ");
         const isSolutionLine = line.toLowerCase().includes("solution");
+        const [lineStart, lineEnd] = lineRanges[lineIndex] || [0.05, 0.5];
+        const wordSpan = (lineEnd - lineStart) / words.length;
 
         return (
           <div
@@ -94,17 +103,14 @@ export function TextReveal({
           >
             {words.map((word, wordIndex) => {
               const isHighlightWord = word.toUpperCase() === "ALL";
-
-              // Map progress range: active between 0.1 and 0.85 of scroll span
-              const start = 0.05 + (globalWordIndex / allWordsCount) * 0.55;
-              const end = start + (0.55 / allWordsCount);
-              globalWordIndex++;
+              const start = lineStart + wordIndex * wordSpan;
+              const end = start + wordSpan;
 
               return (
                 <ScrubbedWord
                   key={`${lineIndex}-${wordIndex}`}
                   word={word}
-                  progress={scrollYProgress}
+                  progress={scrollProgress}
                   range={[start, end]}
                   isHighlight={isHighlightWord}
                   isSolution={isSolutionLine}

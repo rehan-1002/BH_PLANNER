@@ -188,7 +188,7 @@ export default function OverviewPage() {
 
       {/* Empty State vs Active Plan State */}
       {!activePlan ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-12 rounded-2xl bg-[rgba(26,21,38,0.45)] backdrop-blur-md border border-[rgba(147,112,219,0.12)] text-center max-w-2xl mx-auto my-8">
+        <div className="flex-1 flex flex-col items-center justify-center p-12 rounded-2xl glass-panel text-center max-w-2xl mx-auto my-8">
           <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mb-4">
             <Plus className="w-5 h-5 text-accent" strokeWidth={1.75} />
           </div>

@@ -113,7 +113,7 @@ export function AuthSwitch() {
   // Mandatory Email Verification Lockout Card
   if (verificationPending) {
     return (
-      <div className="w-full max-w-md p-8 rounded-2xl bg-panel border border-panel-border backdrop-blur-2xl text-center shadow-2xl">
+      <div className="w-full max-w-md p-8 rounded-2xl glass-panel text-center shadow-2xl">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent/15 border border-accent/30 text-accent mb-4">
           <CheckCircle2 className="w-6 h-6" strokeWidth={1.75} />
         </div>
@@ -144,10 +144,10 @@ export function AuthSwitch() {
   const isSignUp = mode === "signup";
 
   return (
-    <div className="relative w-full max-w-2xl min-h-[520px] overflow-hidden rounded-2xl bg-panel border border-panel-border backdrop-blur-2xl shadow-2xl">
+    <div className="relative w-full max-w-2xl min-h-[520px] overflow-hidden rounded-2xl glass-panel shadow-2xl">
       {/* MOBILE SEGMENTED CONTROL (< md) */}
       <div className="md:hidden p-4 border-b border-panel-border">
-        <div className="relative flex items-center p-1 rounded-xl bg-canvas/70 border border-panel-border">
+        <div className="relative flex items-center p-1 rounded-xl bg-canvas/80 border border-panel-border">
           <button
             type="button"
             onClick={() => {
