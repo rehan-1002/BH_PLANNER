@@ -9,9 +9,6 @@ export interface PlanGenerationResult {
   rawResponseLength: number;
 }
 
-/**
- * Strips markdown code blocks if the LLM outputted them despite instructions
- */
 function cleanJsonString(raw: string): string {
   let cleaned = raw.trim();
   if (cleaned.startsWith("```json")) {
@@ -22,11 +19,6 @@ function cleanJsonString(raw: string): string {
   return cleaned.trim();
 }
 
-/**
- * Central AI Provider Controller
- * Dispatches to Gemini first, fails over to Cohere on 429 / 5xx / timeout,
- * and enforces strict Zod schema validation.
- */
 export async function generatePlan(intake: IntakeContext): Promise<PlanGenerationResult> {
   let rawJson: string | null = null;
   let providerUsed: "gemini-1.5-flash" | "cohere-command-r" = "gemini-1.5-flash";

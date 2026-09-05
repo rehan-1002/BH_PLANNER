@@ -1,9 +1,3 @@
-/**
- * BH Planner — Theme Transition Controller
- * Implements document.startViewTransition with circular clip path for cinematic dark/light toggle.
- * Gracefully degrades on unsupported browsers.
- */
-
 export function toggleThemeWithTransition(
   theme: "dark" | "light",
   setTheme: (newTheme: "dark" | "light") => void,
@@ -11,7 +5,6 @@ export function toggleThemeWithTransition(
 ): void {
   const newTheme = theme === "dark" ? "light" : "dark";
 
-  // Check if document.startViewTransition is supported and user doesn't prefer reduced motion
   if (
     typeof document === "undefined" ||
     !("startViewTransition" in document) ||
@@ -22,7 +15,6 @@ export function toggleThemeWithTransition(
     return;
   }
 
-  // Get coordinates for the circular expansion
   const x = event?.clientX ?? window.innerWidth - 40;
   const y = event?.clientY ?? 40;
   const endRadius = Math.hypot(
@@ -30,7 +22,6 @@ export function toggleThemeWithTransition(
     Math.max(y, window.innerHeight - y)
   );
 
-  // Cast document to any for View Transitions API
   const doc = document as any;
   const transition = doc.startViewTransition(() => {
     setTheme(newTheme);

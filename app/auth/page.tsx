@@ -11,12 +11,10 @@ export const metadata = {
 export default function AuthPage() {
   return (
     <div className="relative w-full min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 py-20 bg-canvas text-foreground selection:bg-accent/30 selection:text-foreground">
-      {/* Top-Left: Theme Toggle */}
       <div className="fixed top-5 left-6 z-50">
         <ThemeToggle />
       </div>
 
-      {/* Top-Right: Refined Frosted Logo Badge */}
       <div className="fixed top-5 right-6 z-50">
         <Link
           aria-label="BH Planner Home"
@@ -31,7 +29,6 @@ export default function AuthPage() {
         </Link>
       </div>
 
-      {/* Brand Header */}
       <div className="flex flex-col items-center mb-8 space-y-3 text-center">
         <div className="flex items-center justify-center size-12 rounded-2xl glass-panel overflow-hidden shadow-md">
           <img
@@ -50,7 +47,6 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* Sliding Frosted Curtain Component (@appvibed01/components/auth-switch) */}
       <div className="w-full flex justify-center">
         <Suspense
           fallback={
@@ -63,7 +59,6 @@ export default function AuthPage() {
         </Suspense>
       </div>
 
-      {/* Security notice */}
       <div className="mt-8 text-center text-xs text-muted/60 font-mono">
         <span>Email verification strictly enforced prior to timetable access</span>
       </div>

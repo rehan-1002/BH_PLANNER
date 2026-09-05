@@ -8,12 +8,6 @@ interface ThemeToggleProps {
   className?: string;
 }
 
-/**
- * @skiper26/ThemeToggleButton
- * Morphing SVG Sun-to-Moon toggle with animated radial rays,
- * crescent mask morph, and circular clip-path view transitions.
- * Strictly adheres to BH Planner flat Violet Bloom theme tokens.
- */
 export function ThemeToggle({ className = "" }: ThemeToggleProps) {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [mounted, setMounted] = useState(false);

@@ -23,10 +23,6 @@ const menuItems: MenuItem[] = [
   { name: "Calendar", href: "/dashboard/calendar", shape: "5", tag: "05" },
 ];
 
-/**
- * Sterling Gate: Kinetic Navigation
- * Direct 1:1 Implementation of https://21st.dev/@hardikkashiyani123456788/components/sterling-gate-kinetic-navigation
- */
 export function KineticNav() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -52,14 +48,13 @@ export function KineticNav() {
     }
   };
 
-  // Initialize GSAP defaults and shape hover physics
   useEffect(() => {
     if (!containerRef.current) return;
 
     try {
       gsap.defaults({ ease: "power2.out", duration: 0.7 });
     } catch {
-      // fallback
+
     }
 
     const ctx = gsap.context(() => {
@@ -167,7 +162,6 @@ export function KineticNav() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap');
 
-        /* Sterling Gate Root Variables */
         .sg-root {
           --color-primary: #8b5cf6;
           --color-dark: #120e1f;
@@ -322,7 +316,6 @@ export function KineticNav() {
           height: 1.4em;
         }
 
-        /* Fullscreen Menu Overlay Container */
         .sg-fullscreen-menu-container {
           position: relative;
         }
@@ -508,7 +501,6 @@ export function KineticNav() {
           transform: scale(1);
         }
 
-        /* Ambient Geometric Shapes in Drawer */
         .sg-ambient-shapes {
           z-index: 1;
           pointer-events: none;
@@ -536,7 +528,6 @@ export function KineticNav() {
           transform-origin: 50%;
         }
 
-        /* Menu Footer Details */
         .sg-menu-details {
           padding-left: 2em;
           padding-right: 2em;
@@ -562,7 +553,6 @@ export function KineticNav() {
           font-size: 0.72rem;
         }
 
-        /* Responsive Breakpoints */
         @media screen and (max-width: 767px) {
           .sg-nav-row-right {
             column-gap: 0.5rem;

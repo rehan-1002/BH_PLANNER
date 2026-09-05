@@ -16,10 +16,6 @@ const sizeMap = {
   lg: { width: 64, height: 64, badgeClass: "p-3 rounded-2xl" },
 };
 
-/**
- * Canonical BH Planner Logo Component
- * Renders the official branding asset directly without redraw or SVG recreation.
- */
 export function BhLogo({
   size = "md",
   withBadge = true,

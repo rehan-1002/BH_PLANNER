@@ -21,7 +21,6 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className="bg-canvas text-foreground min-h-screen relative antialiased selection:bg-accent/30 selection:text-foreground">
         <OfflineDetector />
-        {/* Global Security Deterrence Wrapper */}
         <CaptureShield enableBlurProtection={false} enableWatermark={false}>
           <main className="w-full min-h-screen flex flex-col">
             {children}

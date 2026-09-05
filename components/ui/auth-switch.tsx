@@ -18,13 +18,6 @@ interface AuthSwitchProps {
   initialMode?: "signin" | "signup";
 }
 
-/**
- * EXACT @appvibed01/components/auth-switch
- * - Curved bubble sliding panel transition between Sign In and Sign Up
- * - Show / Hide Password buttons on all password inputs
- * - High-contrast visibility across both Dark (#0d0b14) & Light (#f8f7fc) themes
- * - Integrated Supabase auth handling & email verification flow
- */
 export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,7 +32,6 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
     else if (urlMode === "signin") setIsSignUp(false);
   }, [urlMode]);
 
-  // Form states
   const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
   const [showSignInPassword, setShowSignInPassword] = useState(false);
@@ -170,7 +162,6 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
           transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
-        /* Dual Theme Container Styling */
         html.dark .as-container {
           background: rgba(26, 21, 38, 0.85);
           border: 1px solid rgba(147, 112, 219, 0.22);
@@ -432,7 +423,6 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
           transform: translateX(800px);
         }
 
-        /* Curving Bubble Sliding Overlay */
         .as-container:before {
           content: "";
           position: absolute;
@@ -448,7 +438,6 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
           box-shadow: 0 0 50px rgba(109, 40, 217, 0.4);
         }
 
-        /* Sign-Up Mode Active States */
         .as-container.as-sign-up-mode:before {
           transform: translate(100%, -50%);
           right: 52%;
@@ -486,7 +475,6 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
           pointer-events: all;
         }
 
-
         .as-error-box {
           margin-bottom: 10px;
           padding: 8px 14px;
@@ -502,7 +490,6 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
           width: 100%;
         }
 
-        /* Mobile layout adjustments */
         @media (max-width: 870px) {
           .as-container {
             min-height: 680px;

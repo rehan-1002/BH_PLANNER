@@ -21,14 +21,13 @@ export function NotFoundScreen({ initialReason }: NotFoundScreenProps) {
   );
 }
 
-// 1. Message Display Component with Mode Detection (Deleted, Offline, 404)
 function MessageDisplay({ initialReason }: { initialReason?: string }) {
   const router = useRouter();
   const [isVisible, setIsVisible] = useState(false);
   const [mode, setMode] = useState<NotFoundMode>("default");
 
   useEffect(() => {
-    // 1. Connection check function
+
     const evaluateConnection = () => {
       if (typeof window !== "undefined") {
         if (!navigator.onLine) {
@@ -55,17 +54,15 @@ function MessageDisplay({ initialReason }: { initialReason?: string }) {
 
     evaluateConnection();
 
-    // 2. Real-time online/offline event listeners
     const handleOffline = () => setMode("offline");
     const handleOnline = () => {
-      // Auto-redirect to dashboard when connection restores!
+
       window.location.href = "/dashboard/overview";
     };
 
     window.addEventListener("offline", handleOffline);
     window.addEventListener("online", handleOnline);
 
-    // 3. Periodic liveness ping when in offline mode to detect immediate reconnection
     const pingInterval = setInterval(() => {
       if (typeof window !== "undefined" && navigator.onLine && mode === "offline") {
         window.location.href = "/dashboard/overview";
@@ -84,7 +81,6 @@ function MessageDisplay({ initialReason }: { initialReason?: string }) {
     };
   }, [initialReason, mode]);
 
-  // Mode-specific content configurations
   let badge = "ERROR 404";
   let title = "Page Not Found";
   let code = "404";

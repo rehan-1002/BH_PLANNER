@@ -21,7 +21,6 @@ export default function SchedulePage() {
 
   return (
     <div className="w-full flex-1 flex flex-col space-y-6">
-      {/* Route Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-panel-border">
         <div>
           <div className="flex items-center space-x-2 text-xs font-mono text-accent uppercase tracking-wider mb-1">
@@ -47,9 +46,7 @@ export default function SchedulePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main 7-Day Timetable Grid */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Day Selector Tabs */}
             <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
               {activePlan.schedule.map((day, idx) => (
                 <button

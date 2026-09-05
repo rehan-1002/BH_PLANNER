@@ -38,11 +38,10 @@ export default function OverviewPage() {
     const today = new Date().toISOString().slice(0, 10);
     setTodayDate(today);
 
-    // Load active plan from storage
     const plan = PlanService.getActivePlan();
     if (plan) {
       setActivePlan(plan);
-      // Try to match current day
+
       const dayIdx = plan.schedule.findIndex((d) => d.date === today);
       if (dayIdx !== -1) {
         setSelectedDayIndex(dayIdx);

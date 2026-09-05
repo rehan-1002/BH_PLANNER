@@ -36,11 +36,8 @@ export default async function DashboardLayout({
   return (
     <CaptureShield enableBlurProtection={true} enableWatermark={false}>
       <div className="relative w-full min-h-screen flex flex-col pt-24 pb-16 px-4 sm:px-8 max-w-7xl mx-auto">
-        {/* Sterling Gate: Kinetic Navigation Header */}
         <KineticNav />
 
-
-        {/* Dynamic Route Content */}
         <main className="w-full flex-1 flex flex-col">
           {children}
         </main>

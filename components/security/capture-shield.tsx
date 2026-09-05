@@ -10,14 +10,6 @@ interface CaptureShieldProps {
   children: React.ReactNode;
 }
 
-/**
- * CaptureShield Security & Anti-Inspection Deterrence
- * - Intercepts DevTools shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U).
- * - Intercepts Screenshot shortcuts (PrintScreen, Win+Shift+S, Ctrl+Shift+S, Mac Cmd+Shift+3/4/5).
- * - Window blur & tab visibility protection: blurs screen immediately when snipping tools activate.
- * - Suppresses right-click contextmenu.
- * - Displays high-security glass overlay with dynamic violation reasons.
- */
 export function CaptureShield({
   userEmail = "",
   enableBlurProtection = true,
@@ -46,7 +38,6 @@ export function CaptureShield({
   useEffect(() => {
     setSessionTime(new Date().toISOString().slice(0, 16).replace("T", " "));
 
-    // 1. Tab visibility listener (Switched tabs)
     const handleVisibilityChange = () => {
       if (!enableBlurProtection) return;
       if (document.visibilityState === "hidden") {
@@ -57,7 +48,6 @@ export function CaptureShield({
       }
     };
 
-    // 2. Window Blur Listener (Snipping Tool, Screen Capture, or Window Focus Loss)
     const handleWindowBlur = () => {
       if (!enableBlurProtection) return;
       setSecurityReason("Screen capture / snipping tool deterrence active. Refocus window to resume.");
@@ -68,25 +58,22 @@ export function CaptureShield({
       setIsBlurred(false);
     };
 
-    // 3. Right-Click Context Menu Suppression
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       triggerSecurityBlur("Right-click context inspection disabled.", 1500);
     };
 
-    // 4. Keystroke Interception (DevTools + Screenshot Keys)
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
       const isShift = e.shiftKey;
       const isAlt = e.altKey;
       const key = e.key.toUpperCase();
 
-      // PrintScreen / Screenshot combos
       if (
         e.key === "PrintScreen" ||
         (isCtrlOrCmd && isShift && key === "S") ||
-        (isCtrlOrCmd && key === "P") || // Print
-        (e.metaKey && isShift && ["3", "4", "5"].includes(e.key)) // Mac screenshot combos
+        (isCtrlOrCmd && key === "P") ||
+        (e.metaKey && isShift && ["3", "4", "5"].includes(e.key))
       ) {
         e.preventDefault();
         e.stopPropagation();
@@ -94,12 +81,11 @@ export function CaptureShield({
         return;
       }
 
-      // DevTools keys (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U)
       if (
         e.key === "F12" ||
         (isCtrlOrCmd && isShift && ["I", "J", "C", "K"].includes(key)) ||
         (isCtrlOrCmd && isAlt && ["I", "J", "C"].includes(key)) ||
-        (isCtrlOrCmd && key === "U") // View source
+        (isCtrlOrCmd && key === "U")
       ) {
         e.preventDefault();
         e.stopPropagation();
@@ -108,7 +94,6 @@ export function CaptureShield({
       }
     };
 
-    // 5. DevTools Docked Detection via viewport threshold
     const checkDevToolsDimensions = () => {
       if (!enableBlurProtection) return;
       const threshold = 160;
@@ -147,7 +132,6 @@ export function CaptureShield({
 
   return (
     <div className="relative w-full h-full min-h-screen select-none">
-      {/* Protected content */}
       <div
         className={`transition-all duration-300 ${
           shouldBlock ? "filter blur-2xl select-none pointer-events-none opacity-20" : ""

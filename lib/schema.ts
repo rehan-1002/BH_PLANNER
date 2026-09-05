@@ -1,20 +1,11 @@
 import { z } from "zod";
 
-/**
- * Block types permitted in the canonical timetable
- */
 export const BlockTypeSchema = z.enum(["college", "commute", "study", "buffer"]);
 export type BlockType = z.infer<typeof BlockTypeSchema>;
 
-/**
- * Execution statuses for actionable blocks
- */
 export const BlockStatusSchema = z.enum(["pending", "done", "partial", "missed"]);
 export type BlockStatus = z.infer<typeof BlockStatusSchema>;
 
-/**
- * Canonical Schedule Block Schema
- */
 export const ScheduleBlockSchema = z
   .object({
     id: z.string().min(1, "Block ID is required"),
@@ -32,7 +23,7 @@ export const ScheduleBlockSchema = z
   })
   .refine(
     (data) => {
-      // Validate start_time < end_time
+
       const [startH, startM] = data.start_time.split(":").map(Number);
       const [endH, endM] = data.end_time.split(":").map(Number);
       const startMinutes = startH * 60 + startM;
@@ -47,9 +38,6 @@ export const ScheduleBlockSchema = z
 
 export type ScheduleBlock = z.infer<typeof ScheduleBlockSchema>;
 
-/**
- * Day Schedule Schema with non-overlapping blocks validation
- */
 export const DayScheduleSchema = z
   .object({
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
@@ -58,7 +46,7 @@ export const DayScheduleSchema = z
   })
   .refine(
     (day) => {
-      // Check for overlapping blocks within the same day
+
       const sorted = [...day.blocks].sort((a, b) => {
         const [aH, aM] = a.start_time.split(":").map(Number);
         const [bH, bM] = b.start_time.split(":").map(Number);
@@ -74,7 +62,7 @@ export const DayScheduleSchema = z
         const nextStartMinutes = nextStartH * 60 + nextStartM;
 
         if (currEndMinutes > nextStartMinutes) {
-          return false; // Overlap detected
+          return false;
         }
       }
       return true;
@@ -87,9 +75,6 @@ export const DayScheduleSchema = z
 
 export type DaySchedule = z.infer<typeof DayScheduleSchema>;
 
-/**
- * Canonical Timetable Schema
- */
 export const TimetableSchema = z.object({
   plan_id: z.string().min(1, "plan_id is required"),
   generated_provider: z.string().min(1, "generated_provider is required"),
@@ -98,9 +83,6 @@ export const TimetableSchema = z.object({
 
 export type Timetable = z.infer<typeof TimetableSchema>;
 
-/**
- * Student Intake Context for AI generation
- */
 export const IntakeContextSchema = z.object({
   collegeHours: z.object({
     start_time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),

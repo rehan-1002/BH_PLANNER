@@ -10,15 +10,6 @@ interface HandwritingTextProps {
   triggerAnimation?: boolean;
 }
 
-/**
- * @kokonutd/components/hand-writing-text
- * Cursive calligraphy SVG path animation for "BH PLANNER".
- * Actively animates path strokes when scrolled into view:
- * 1. "BH" — Violet Bloom Primary (#8b5cf6) — duration 0.8s
- * 2. "PLANNER" — Foreground Ink: stroke="currentColor" (theme-adaptive) — duration 1.1s, delay 0.5s
- * 3. Underline flourish — Violet Bloom Primary (#8b5cf6) — duration 0.5s, delay 1.6s
- * 4. Fires onComplete callback to reveal the JOIN button.
- */
 export function HandwritingText({
   onComplete,
   className = "",

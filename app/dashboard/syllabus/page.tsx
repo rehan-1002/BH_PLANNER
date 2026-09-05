@@ -8,7 +8,7 @@ interface SyllabusTopicItem {
   subject: string;
   module: string;
   title: string;
-  weightage: number; // 1-5
+  weightage: number;
   completed: boolean;
 }
 
@@ -28,7 +28,7 @@ export default function SyllabusPage() {
         setTopics(JSON.parse(stored));
       }
     } catch {
-      // ignore
+
     } finally {
       setIsLoaded(true);
     }
@@ -93,7 +93,6 @@ export default function SyllabusPage() {
 
   return (
     <div className="w-full flex-1 flex flex-col space-y-6">
-      {/* Route Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-panel-border">
         <div>
           <div className="flex items-center space-x-2 text-xs font-mono text-accent uppercase tracking-wider mb-1">
@@ -120,7 +119,6 @@ export default function SyllabusPage() {
         </div>
       </div>
 
-      {/* Overview Metrics Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 rounded-xl bg-panel border border-panel-border">
           <span className="text-xs text-muted font-mono block mb-1">TOTAL CURRICULUM TOPICS</span>

@@ -105,7 +105,6 @@ export default function CopilotPage() {
 
   return (
     <div className="w-full flex-1 flex flex-col space-y-6">
-      {/* Route Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-panel-border">
         <div>
           <div className="flex items-center space-x-2 text-xs font-mono text-accent uppercase tracking-wider mb-1">
@@ -121,9 +120,7 @@ export default function CopilotPage() {
         </div>
       </div>
 
-      {/* Copilot Workbench Area */}
       <div className="flex-1 flex flex-col rounded-2xl bg-panel border border-panel-border overflow-hidden min-h-[500px]">
-        {/* Messages Stream */}
         <div className="flex-1 p-6 overflow-y-auto space-y-4">
           {messages.map((msg, idx) => (
             <div

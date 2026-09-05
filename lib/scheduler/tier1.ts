@@ -14,9 +14,6 @@ export interface SpilloverResult {
   requiresReTriage: boolean;
 }
 
-/**
- * Calculates date difference in hours between two YYYY-MM-DD strings and times
- */
 function getHoursDifference(
   date1: string,
   time1: string,
@@ -30,7 +27,7 @@ function getHoursDifference(
 
 /**
  * Tier-1 Deterministic Spillover Engine
- * 
+ *
  * Strict invariants:
  * 1. Zero AI calls. Zero external network calls.
  * 2. Scans forward up to 72 hours from the missed block's date/time.

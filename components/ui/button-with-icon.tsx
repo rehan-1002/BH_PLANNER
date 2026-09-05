@@ -12,13 +12,6 @@ interface ButtonWithIconProps {
   ariaLabel?: string;
 }
 
-/**
- * @shadcnspace/components/button-witn-icon
- * Kinetic button with floating icon capsule:
- * - Padding inversion: ps-6 pe-14 -> group-hover:ps-14 group-hover:pe-6
- * - Animated icon circle: slides across from right-1 to right-[calc(100%-44px)] and rotates 45deg on hover
- * - Strictly follows Violet Bloom flat theme tokens (accent #8b5cf6, hover #7c3aed, high-contrast inner circle)
- */
 export function ButtonWithIcon({
   children = "JOIN",
   href,

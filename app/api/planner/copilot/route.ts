@@ -49,7 +49,7 @@ Rules for Mutation:
   "generated_provider": "copilot-gemini-2.5-flash",
   "explanation": "Clear 1-2 sentence explanation of the exact schedule changes made.",
   "schedule": [
-    ... // array of DaySchedule objects with updated blocks
+    ...
   ]
 }`;
 
@@ -64,7 +64,6 @@ Rules for Mutation:
     const parsed = JSON.parse(rawText);
     const explanation = parsed.explanation || "Schedule successfully updated per your request.";
 
-    // Validate the modified schedule
     const validated = TimetableSchema.safeParse({
       plan_id: parsed.plan_id || currentTimetable.plan_id,
       generated_provider: "copilot-gemini-2.5-flash",

@@ -18,10 +18,6 @@ interface WordProps {
   isSolution?: boolean;
 }
 
-/**
- * Individual Word with scroll-scrubbed deblur and opacity transition
- * Adheres to @kumail_ali_r/components/text-reveal-animation physics
- */
 function ScrubbedWord({
   word,
   progress,

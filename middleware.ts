@@ -41,7 +41,6 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Retrieve authenticated user from Supabase Auth
   const {
     data: { user },
     error,
@@ -64,7 +63,6 @@ export async function middleware(request: NextRequest) {
           error.status === 500)
     );
 
-  // If user is deleted or session is invalid, deny access to dashboard and route to 404 page
   if (isDashboardRoute && (!user || error)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/not-found";
@@ -72,7 +70,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // If user is already authenticated, redirect auth pages to dashboard
   if (isAuthRoute && user && !error) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/dashboard/overview";
@@ -84,13 +81,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public assets
-     */
+
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

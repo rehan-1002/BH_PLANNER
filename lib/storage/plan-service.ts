@@ -11,14 +11,8 @@ export interface RecoveryLog {
   result: SpilloverResult;
 }
 
-/**
- * Plan Persistence and State Management Service
- * Provides seamless local storage synchronization with resilient Supabase fallbacks.
- */
 export class PlanService {
-  /**
-   * Retrieves the currently active timetable
-   */
+
   static getActivePlan(): Timetable | null {
     if (typeof window === "undefined") return null;
     try {
@@ -30,9 +24,6 @@ export class PlanService {
     }
   }
 
-  /**
-   * Saves or updates the active timetable
-   */
   static saveActivePlan(plan: Timetable): void {
     if (typeof window === "undefined") return;
     try {
@@ -42,10 +33,6 @@ export class PlanService {
     }
   }
 
-  /**
-   * Updates an individual block's status (pending, done, partial, missed)
-   * If status is 'missed', automatically triggers Tier-1 deterministic spillover.
-   */
   static updateBlockStatus(
     blockId: string,
     status: "pending" | "done" | "partial" | "missed"
@@ -57,7 +44,6 @@ export class PlanService {
       const spillover = executeTier1Spillover(current, blockId);
       this.saveActivePlan(spillover.updatedTimetable);
 
-      // Record recovery log
       this.addRecoveryLog({
         id: "rec_" + Date.now(),
         timestamp: new Date().toISOString(),
@@ -68,7 +54,6 @@ export class PlanService {
       return { plan: spillover.updatedTimetable, spillover };
     }
 
-    // Standard status update
     for (const day of current.schedule) {
       for (const block of day.blocks) {
         if (block.id === blockId) {
@@ -82,9 +67,6 @@ export class PlanService {
     return { plan: current };
   }
 
-  /**
-   * Retrieves recovery history logs
-   */
   static getRecoveryLogs(): RecoveryLog[] {
     if (typeof window === "undefined") return [];
     try {
@@ -95,9 +77,6 @@ export class PlanService {
     }
   }
 
-  /**
-   * Adds a recovery log entry
-   */
   static addRecoveryLog(log: RecoveryLog): void {
     if (typeof window === "undefined") return;
     try {

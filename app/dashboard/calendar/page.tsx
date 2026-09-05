@@ -7,7 +7,7 @@ interface Milestone {
   id: string;
   subject: string;
   title: string;
-  examDate: string; // YYYY-MM-DD
+  examDate: string;
   weight: "High" | "Critical" | "Standard";
 }
 
@@ -36,7 +36,7 @@ export default function CalendarPage() {
         setMilestones(JSON.parse(stored));
       }
     } catch {
-      // ignore
+
     } finally {
       setIsLoaded(true);
     }
@@ -75,7 +75,6 @@ export default function CalendarPage() {
 
   return (
     <div className="w-full flex-1 flex flex-col space-y-6">
-      {/* Route Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-panel-border">
         <div>
           <div className="flex items-center space-x-2 text-xs font-mono text-accent uppercase tracking-wider mb-1">
@@ -102,7 +101,6 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* Runway Timeline Surface or Clean Empty State */}
       {isLoaded && milestones.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center p-12 rounded-2xl bg-panel border border-panel-border text-center max-w-xl mx-auto my-8">
           <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mb-4">
