@@ -1,21 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { KineticNav } from "@/components/ui/kinetic-nav";
 import { ScrollFloat } from "@/components/ui/scroll-float";
 import { HandwritingText } from "@/components/ui/handwriting";
 import { ButtonWithIcon } from "@/components/ui/button-with-icon";
-import { AuthSwitch } from "@/components/ui/auth-switch";
 
 export default function LandingPage() {
-  const scrollToAuth = () => {
-    const authEl = document.getElementById("auth-gateway");
-    if (authEl) {
-      authEl.scrollIntoView({ behavior: "smooth" });
-    }
+  const router = useRouter();
+
+  const handleJoin = () => {
+    router.push("/signup");
   };
 
   return (
@@ -57,9 +56,8 @@ export default function LandingPage() {
             Phase 01 · The Reality
           </span>
           <ScrollFloat
-            animateOnMount={true}
-            animationDuration={1.1}
-            stagger={0.035}
+            animationDuration={0.9}
+            stagger={0.032}
             containerClassName="w-full"
             textClassName="text-foreground"
           >
@@ -83,9 +81,8 @@ export default function LandingPage() {
             Phase 02 · The Barrier
           </span>
           <ScrollFloat
-            scrollStart="top bottom-=15%"
-            scrollEnd="center center"
-            stagger={0.04}
+            animationDuration={0.9}
+            stagger={0.035}
             containerClassName="w-full"
             textClassName="text-foreground"
           >
@@ -104,9 +101,8 @@ export default function LandingPage() {
           </span>
           <ScrollFloat
             highlightWord="ALL"
-            scrollStart="top bottom-=15%"
-            scrollEnd="center center"
-            stagger={0.035}
+            animationDuration={0.9}
+            stagger={0.032}
             containerClassName="w-full"
             textClassName="text-foreground"
           >
@@ -146,57 +142,31 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ amount: 0.5, once: false }}
             transition={{ duration: 0.5, delay: 0.8 }}
-            className="pt-2"
+            className="pt-2 flex flex-col items-center space-y-4"
           >
             <ButtonWithIcon
-              onClick={scrollToAuth}
-              ariaLabel="Proceed to Authentication Gateway"
+              onClick={handleJoin}
+              ariaLabel="Join BH Planner — Create Account"
             >
               JOIN
             </ButtonWithIcon>
+
+            {/* Direct Link to Sign In */}
+            <p className="text-xs text-muted font-mono">
+              Already have an account?{" "}
+              <Link
+                href="/auth"
+                className="text-accent hover:underline font-medium ml-1 transition-colors"
+              >
+                Sign in
+              </Link>
+            </p>
           </motion.div>
         </div>
 
-        {/* Subtle Section Footnote */}
+        {/* Section Footnote */}
         <div className="absolute bottom-8 inset-x-0 flex justify-center text-xs text-muted/60 font-mono select-none">
           <span>BH PLANNER · DETERMINISTIC ACADEMIC ENGINE</span>
-        </div>
-      </section>
-
-      {/* =================================================================== */}
-      {/* SCENE 5: AUTHENTICATION GATEWAY (@appvibed01/components/auth-switch) */}
-      {/* =================================================================== */}
-      <section
-        id="auth-gateway"
-        className="relative w-full min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 py-24 sm:py-32 border-t border-panel-border"
-      >
-        <div className="flex flex-col items-center mb-8 space-y-3 text-center">
-          <div className="flex items-center justify-center size-12 rounded-2xl glass-panel overflow-hidden shadow-md">
-            <img
-              src="/BH LOGO.webp"
-              alt="BH Logo"
-              className="size-8 object-contain"
-            />
-          </div>
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-              Academic Access Gateway
-            </h2>
-            <p className="text-xs sm:text-sm text-muted mt-1 max-w-md">
-              Authenticate to access your active timetable, syllabus runway, and Tier-1 deterministic buffer engine.
-            </p>
-          </div>
-        </div>
-
-        {/* Sliding Frosted Curtain Component */}
-        <div className="w-full flex justify-center">
-          <AuthSwitch />
-        </div>
-
-        {/* Security Notice & Specification Footer */}
-        <div className="mt-12 text-center text-xs text-muted/70 font-mono space-y-2">
-          <p>Email verification strictly enforced prior to timetable access</p>
-          <p className="text-[11px] text-muted/50">BH PLANNER · SYSTEM SPECIFICATION 1.0</p>
         </div>
       </section>
     </div>

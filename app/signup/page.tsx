@@ -7,20 +7,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
   Lock,
+  ShieldCheck,
   AlertCircle,
   CheckCircle2,
   ArrowRight,
   Loader2,
-  ShieldAlert,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-export default function AuthPage() {
+export default function SignUpPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -29,29 +30,43 @@ export default function AuthPage() {
 
   const supabase = createClient();
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+
+    if (password !== confirmPassword) {
+      setErrorMsg("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard/overview`,
+        },
       });
 
       if (error) {
         setErrorMsg(error.message);
+      } else if (data.user && !data.session) {
+        // Confirmation email dispatched
+        setPendingEmail(email);
+        setVerificationPending(true);
       } else if (data.session) {
-        if (!data.user.email_confirmed_at) {
-          setPendingEmail(email);
-          setVerificationPending(true);
-        } else {
-          router.push("/dashboard/overview");
-        }
+        // Immediate session (e.g. if email confirmation disabled in dev)
+        router.push("/dashboard/overview");
       }
     } catch (err: any) {
-      setErrorMsg(err?.message || "An unexpected error occurred during sign in");
+      setErrorMsg(err?.message || "An unexpected error occurred during registration");
     } finally {
       setLoading(false);
     }
@@ -82,38 +97,46 @@ export default function AuthPage() {
       <AnimatePresence mode="wait">
         {verificationPending ? (
           <motion.div
-            key="verify-warning"
+            key="verify-screen"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             className="w-full max-w-md p-8 rounded-2xl glass-panel text-center space-y-6 shadow-2xl"
           >
-            <div className="size-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400 shadow-sm">
-              <ShieldAlert className="w-7 h-7" />
+            <div className="size-14 rounded-2xl bg-accent/15 border border-accent/30 flex items-center justify-center mx-auto text-accent shadow-sm">
+              <CheckCircle2 className="w-7 h-7" />
             </div>
 
             <div className="space-y-2">
               <h2 className="text-xl font-bold tracking-tight text-foreground">
-                Email Confirmation Required
+                Verification Dispatched
               </h2>
               <p className="text-sm text-muted leading-relaxed">
-                Your account <span className="font-mono text-accent font-semibold">{pendingEmail}</span> has not been verified yet. Check your inbox for the activation link before accessing timetable scheduling.
+                An activation link has been sent to{" "}
+                <span className="font-mono text-accent font-semibold">{pendingEmail}</span>.
+                Please verify your academic email to unlock your timetable workspace.
               </p>
             </div>
 
             <div className="pt-2 flex flex-col space-y-3">
+              <Link
+                href="/auth"
+                className="w-full py-3 px-4 rounded-xl bg-accent text-white font-medium text-sm hover:bg-accent/90 transition-colors shadow-md text-center block"
+              >
+                Proceed to Sign In
+              </Link>
               <button
                 type="button"
                 onClick={() => setVerificationPending(false)}
-                className="w-full py-3 px-4 rounded-xl bg-accent text-white font-medium text-sm hover:bg-accent/90 transition-colors shadow-md text-center block"
+                className="text-xs text-muted hover:text-foreground font-mono transition-colors"
               >
-                Return to Sign In
+                ← Back to registration form
               </button>
             </div>
           </motion.div>
         ) : (
           <motion.div
-            key="signin-card"
+            key="signup-card"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
@@ -130,10 +153,10 @@ export default function AuthPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                  Sign In to BH Planner
+                  Join BH Planner
                 </h1>
                 <p className="text-xs sm:text-sm text-muted mt-1">
-                  Access your academic dashboard, timetable, and study runway.
+                  Create your account to start adaptive timetable scheduling.
                 </p>
               </div>
             </div>
@@ -146,8 +169,8 @@ export default function AuthPage() {
               </div>
             )}
 
-            {/* Sign In Form */}
-            <form onSubmit={handleSignIn} className="space-y-4">
+            {/* Sign Up Form */}
+            <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-mono uppercase tracking-wider text-muted flex items-center space-x-2">
                   <Mail className="w-3.5 h-3.5 text-accent" />
@@ -173,7 +196,22 @@ export default function AuthPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder="Minimum 6 characters"
+                  className="w-full px-4 py-2.5 rounded-xl bg-canvas border border-panel-border focus:border-accent focus:outline-none text-sm text-foreground placeholder:text-muted/50 transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-mono uppercase tracking-wider text-muted flex items-center space-x-2">
+                  <ShieldCheck className="w-3.5 h-3.5 text-accent" />
+                  <span>Confirm Password</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repeat your password"
                   className="w-full px-4 py-2.5 rounded-xl bg-canvas border border-panel-border focus:border-accent focus:outline-none text-sm text-foreground placeholder:text-muted/50 transition-colors"
                 />
               </div>
@@ -187,7 +225,7 @@ export default function AuthPage() {
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    <span>Sign In</span>
+                    <span>Create Account</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -197,12 +235,12 @@ export default function AuthPage() {
             {/* Bottom Navigation */}
             <div className="pt-2 text-center border-t border-panel-border/60">
               <p className="text-xs text-muted font-mono">
-                Don&apos;t have an account?{" "}
+                Already have an account?{" "}
                 <Link
-                  href="/signup"
+                  href="/auth"
                   className="text-accent hover:underline font-semibold ml-1 transition-colors"
                 >
-                  Join BH Planner
+                  Sign in here
                 </Link>
               </p>
             </div>

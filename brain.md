@@ -56,25 +56,29 @@ Next Priority:      Run supabase-schema.sql in Supabase SQL editor and connect l
 - **Behavior:** Renders the canonical square violet badge asset directly via Next.js Image inside a frosted panel badge (`rgba(26, 21, 38, 0.55)`). Fixed at top-right in the global header dock. No SVG redrawing, no text substitution, no variant creation.
 - **Validation:** Verified via production build static asset bundling and HTML output inspection.
 
-### 3. Landing Page Sequence (GSAP ScrollFloat & @kokonutd Animated Handwriting)
+### 3. Landing Page Sequence (Auto-Animated GSAP ScrollFloat & @kokonutd Handwriting)
 - **Status:** Implemented & Verified
 - **Route:** `/`
-- **Files:** `app/page.tsx`, `components/ui/scroll-float.tsx`, `components/ui/handwriting.tsx`, `components/ui/button-with-icon.tsx`, `components/ui/auth-switch.tsx`, `components/ui/kinetic-nav.tsx`
-- **Behavior:** Renders the dynamic scroll-driven storytelling sequence:
-  1. `Unorganised planning?` (Kinetic character float with GSAP ScrollTrigger physics: `yPercent: 120 -> 0`, `scaleY: 2.3 -> 1`, `scaleX: 0.7 -> 1`, with load entrance physics)
-  2. As user scrolls, Scene 1 scrolls UP and out; `No schedule?` floats up and scales into the center via GSAP ScrollTrigger scrub
-  3. As user scrolls further, Scene 2 scrolls UP and out; `ALL solution is here` rises into the center with "ALL" in `#8b5cf6` violet accent
-  4. As user scrolls further, Scene 3 scrolls UP and out; `BH PLANNER` arrives in the center and actively animates its cursive calligraphy strokes (B vertical/loops, H stems/bridge, P-L-A-N-N-E-R cursive glyphs, flourish underline) accompanied by a traveling fountain pen nib cursor
-  5. `JOIN` CTA button (`@shadcnspace/components/button-witn-icon`) floats in, smoothly scrolling down to the `@appvibed01` sliding curtain authentication gateway
+- **Files:** `app/page.tsx`, `components/ui/scroll-float.tsx`, `components/ui/handwriting.tsx`, `components/ui/button-with-icon.tsx`, `components/ui/kinetic-nav.tsx`
+- **Behavior:** Renders the dynamic automatic scroll-driven storytelling sequence:
+  1. `Unorganised planning?` (Automatically animates characters on in-view/mount with GSAP kinetic float physics: `yPercent: 120 -> 0`, `scaleY: 2.3 -> 1`, `scaleX: 0.7 -> 1`, `ease: back.out(2)`)
+  2. As user scrolls down, Scene 1 scrolls UP and out; `No schedule?` enters the viewport and automatically plays its GSAP character float animation
+  3. As user scrolls further, Scene 2 scrolls UP and out; `ALL solution is here` enters the viewport and automatically animates with "ALL" highlighted in `#8b5cf6` violet accent
+  4. As user scrolls further, Scene 3 scrolls UP and out; `BH PLANNER` arrives in the center and automatically animates its cursive calligraphy strokes (B vertical/loops, H stems/bridge, P-L-A-N-N-E-R cursive glyphs, flourish underline) accompanied by a traveling fountain pen nib cursor
+  5. `JOIN` CTA button (`@shadcnspace/components/button-witn-icon`) floats in. Clicking `JOIN` navigates directly to the dedicated `/signup` page on a different page.
+  6. Direct secondary link to Sign In (`/auth`) provided below the CTA button.
   Full-width layout, no horizontal scroll, high-contrast Dark & Light theme visibility, zero opacity lockouts.
 - **Validation:** Typecheck and production build verified cleanly.
 
-### 4. Authentication Gateway & Split Sliding Card (@appvibed01)
+### 4. Dedicated Authentication Pages: Sign Up (/signup) & Sign In (/auth & /login)
 - **Status:** Implemented & Verified
-- **Route:** `/auth`
-- **Files:** `app/auth/page.tsx`, `components/ui/auth-switch.tsx`, `lib/supabase/client.ts`, `lib/supabase/server.ts`
-- **Behavior:** Implements `@appvibed01/components/auth-switch` split dual-card sliding layout. The frosted editorial panel physically glides across the container horizontally with spring physics (`stiffness: 260, damping: 28`) to switch between Sign In and Create Account, while the forms crossfade underneath. Enforces Supabase email verification state before granting access to `/dashboard/*`.
-- **Validation:** Form renders, handles error display, and enforces verification requirement.
+- **Routes:** `/signup`, `/auth`, `/login`
+- **Files:** `app/signup/page.tsx`, `app/auth/page.tsx`, `app/login/page.tsx`, `lib/supabase/client.ts`, `lib/supabase/server.ts`
+- **Behavior:**
+  - `/signup`: Dedicated Sign Up page that appears when clicking `JOIN` from the landing page. Features email, password, confirm password, password strength/match validation, and Supabase email verification dispatch notice. Clean link to `/auth` ("Already have an account? Sign in here").
+  - `/auth` (and `/login`): Dedicated Sign In page for existing users. Features email and password fields, authentication state handling, unverified email detection, and clean link to `/signup` ("Don't have an account? Join BH Planner").
+  - Both routes are fully styled with Violet Bloom glass panels, canonical logo branding, theme toggles, and responsive layouts.
+- **Validation:** Both routes compiled as static pages with zero errors.
 
 ### 5. Protected Dashboard Shell & Kinetic Navigation (@hardikkashiyani123456788)
 - **Status:** Implemented & Verified
