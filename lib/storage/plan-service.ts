@@ -140,10 +140,16 @@ export class PlanService {
       }
 
       const blockRows: any[] = [];
-      for (const day of plan.schedule) {
-        for (const block of day.blocks) {
+      plan.schedule.forEach((day, dayIdx) => {
+        day.blocks.forEach((block, blkIdx) => {
+          const uniqueId =
+            block.id && block.id.length > 12 && block.id.includes("_")
+              ? block.id
+              : `blk_${plan.plan_id.slice(-6)}_${dayIdx}_${blkIdx}`;
+          block.id = uniqueId;
+
           blockRows.push({
-            id: block.id,
+            id: uniqueId,
             plan_id: plan.plan_id,
             user_id: user.id,
             date: day.date,
@@ -156,8 +162,8 @@ export class PlanService {
             status: block.status || "pending",
             is_locked: block.is_locked,
           });
-        }
-      }
+        });
+      });
 
       if (blockRows.length > 0) {
         const { error: blockError } = await supabase

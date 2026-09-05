@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CalendarDays, Flag, Clock, Plus, Trash2, ArrowRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface Milestone {
   id: string;
@@ -36,9 +37,37 @@ export default function CalendarPage() {
         setMilestones(JSON.parse(stored));
       }
     } catch {
-
     } finally {
       setIsLoaded(true);
+    }
+
+    // Cloud rehydration from Supabase
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase
+            .from("exam_milestones")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("exam_date", { ascending: true })
+            .then(({ data, error }) => {
+              if (data && data.length > 0) {
+                const mapped: Milestone[] = data.map((m) => ({
+                  id: m.id,
+                  subject: m.subject,
+                  title: m.title,
+                  examDate: m.exam_date,
+                  weight: "High",
+                }));
+                setMilestones(mapped);
+                localStorage.setItem(STORAGE_KEY_MILESTONES, JSON.stringify(mapped));
+              }
+            });
+        }
+      });
+    } catch (e) {
+      console.warn("Supabase calendar sync error:", e);
     }
   }, []);
 
@@ -66,11 +95,51 @@ export default function CalendarPage() {
     setTitle("");
     setExamDate("");
     setShowAddModal(false);
+
+    // Save to Supabase
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase
+            .from("exam_milestones")
+            .insert({
+              id: newM.id,
+              user_id: user.id,
+              subject: newM.subject,
+              title: newM.title,
+              exam_date: newM.examDate,
+            })
+            .then(({ error }) => {
+              if (error) console.warn("Supabase milestone insert error:", error.message);
+            });
+        }
+      });
+    } catch (e) {
+      console.warn("Failed to persist milestone to Supabase:", e);
+    }
   };
 
   const handleDeleteMilestone = (id: string) => {
     const updated = milestones.filter((m) => m.id !== id);
     saveMilestones(updated);
+
+    // Delete from Supabase
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase
+            .from("exam_milestones")
+            .delete()
+            .eq("id", id)
+            .eq("user_id", user.id)
+            .then();
+        }
+      });
+    } catch (e) {
+      console.warn("Failed to delete milestone from Supabase:", e);
+    }
   };
 
   return (

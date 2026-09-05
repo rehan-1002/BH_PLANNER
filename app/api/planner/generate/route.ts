@@ -22,6 +22,62 @@ export async function POST(req: NextRequest) {
 
     const result = await generatePlan(parseResult.data);
 
+    // Guarantee globally unique block IDs across all days
+    result.timetable.schedule.forEach((day, dayIdx) => {
+      day.blocks.forEach((block, blkIdx) => {
+        block.id = `blk_${result.timetable.plan_id.slice(-6)}_${dayIdx}_${blkIdx}`;
+      });
+    });
+
+    // Server-side direct persistence to Supabase
+    try {
+      const { createClient } = await import("@/lib/supabase/server");
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        await supabase
+          .from("plans")
+          .update({ is_active: false })
+          .eq("user_id", user.id);
+
+        await supabase.from("plans").insert({
+          id: result.timetable.plan_id,
+          user_id: user.id,
+          generated_provider: result.providerUsed,
+          is_active: true,
+        });
+
+        const blockRows = [];
+        for (const day of result.timetable.schedule) {
+          for (const block of day.blocks) {
+            blockRows.push({
+              id: block.id,
+              plan_id: result.timetable.plan_id,
+              user_id: user.id,
+              date: day.date,
+              day_of_week: day.day_of_week,
+              start_time: block.start_time,
+              end_time: block.end_time,
+              type: block.type,
+              title: block.title,
+              subject: block.subject || null,
+              status: block.status || "pending",
+              is_locked: block.is_locked,
+            });
+          }
+        }
+
+        if (blockRows.length > 0) {
+          await supabase.from("schedule_blocks").insert(blockRows);
+        }
+      }
+    } catch (dbErr) {
+      console.warn("[API generate] Non-fatal Supabase server sync warning:", dbErr);
+    }
+
     return NextResponse.json({
       success: true,
       data: result.timetable,

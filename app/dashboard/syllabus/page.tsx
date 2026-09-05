@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { BookOpen, Plus, CheckCircle2, Circle, Star, Upload, FileText, Trash2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface SyllabusTopicItem {
   id: string;
@@ -28,9 +29,38 @@ export default function SyllabusPage() {
         setTopics(JSON.parse(stored));
       }
     } catch {
-
     } finally {
       setIsLoaded(true);
+    }
+
+    // Cloud rehydration from Supabase
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase
+            .from("syllabus_topics")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: true })
+            .then(({ data, error }) => {
+              if (data && data.length > 0) {
+                const mapped: SyllabusTopicItem[] = data.map((t) => ({
+                  id: t.id,
+                  subject: t.subject,
+                  module: "Core Curriculum",
+                  title: t.title,
+                  weightage: t.weightage || 3,
+                  completed: !!t.completed,
+                }));
+                setTopics(mapped);
+                localStorage.setItem(STORAGE_KEY_TOPICS, JSON.stringify(mapped));
+              }
+            });
+        }
+      });
+    } catch (e) {
+      console.warn("Supabase syllabus sync error:", e);
     }
   }, []);
 
@@ -46,11 +76,48 @@ export default function SyllabusPage() {
   const toggleTopicCompleted = (id: string) => {
     const updated = topics.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t));
     saveTopics(updated);
+
+    // Sync toggle to Supabase
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          const target = updated.find((t) => t.id === id);
+          if (target) {
+            supabase
+              .from("syllabus_topics")
+              .update({ completed: target.completed })
+              .eq("id", id)
+              .eq("user_id", user.id)
+              .then();
+          }
+        }
+      });
+    } catch (e) {
+      console.warn("Failed to update topic in Supabase:", e);
+    }
   };
 
   const deleteTopic = (id: string) => {
     const updated = topics.filter((t) => t.id !== id);
     saveTopics(updated);
+
+    // Delete from Supabase
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase
+            .from("syllabus_topics")
+            .delete()
+            .eq("id", id)
+            .eq("user_id", user.id)
+            .then();
+        }
+      });
+    } catch (e) {
+      console.warn("Failed to delete topic from Supabase:", e);
+    }
   };
 
   const handleParseSyllabus = (e: React.FormEvent) => {
@@ -85,6 +152,31 @@ export default function SyllabusPage() {
     setPastedText("");
     setSubjectInput("");
     setShowIngestModal(false);
+
+    // Persist parsed topics to Supabase
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user && parsed.length > 0) {
+          const rows = parsed.map((p) => ({
+            id: p.id,
+            user_id: user.id,
+            subject: p.subject,
+            title: p.title,
+            weightage: p.weightage,
+            completed: p.completed,
+          }));
+          supabase
+            .from("syllabus_topics")
+            .insert(rows)
+            .then(({ error }) => {
+              if (error) console.warn("Supabase syllabus insert error:", error.message);
+            });
+        }
+      });
+    } catch (e) {
+      console.warn("Failed to persist syllabus topics to Supabase:", e);
+    }
   };
 
   const totalTopics = topics.length;
