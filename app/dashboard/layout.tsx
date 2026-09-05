@@ -20,7 +20,7 @@ export default async function DashboardLayout({
   } = await supabase.auth.getUser();
 
   if (!user || error) {
-    redirect("/auth?mode=signin");
+    redirect("/not-found?reason=deleted");
   }
 
   return (

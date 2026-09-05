@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CaptureShield } from "@/components/security/capture-shield";
+import { OfflineDetector } from "@/components/offline-detector";
 
 export const metadata: Metadata = {
   title: "BH Planner — Adaptive Academic Study Planning",
@@ -19,6 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className="bg-canvas text-foreground min-h-screen relative antialiased selection:bg-accent/30 selection:text-foreground">
+        <OfflineDetector />
         {/* Global Security Deterrence Wrapper */}
         <CaptureShield enableBlurProtection={false} enableWatermark={false}>
           <main className="w-full min-h-screen flex flex-col">

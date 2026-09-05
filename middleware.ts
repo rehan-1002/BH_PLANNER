@@ -53,11 +53,11 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname === "/login" ||
     request.nextUrl.pathname === "/signup";
 
-  // If user is deleted or session is invalid, deny access to dashboard
+  // If user is deleted or session is invalid, deny access to dashboard and route to 404 page
   if (isDashboardRoute && (!user || error)) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/auth";
-    redirectUrl.searchParams.set("mode", "signin");
+    redirectUrl.pathname = "/not-found";
+    redirectUrl.searchParams.set("reason", "deleted");
     return NextResponse.redirect(redirectUrl);
   }
 
