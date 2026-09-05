@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- BH PLANNER — CANONICAL SUPABASE DATABASE SCHEMA
 -- Execute this script in your Supabase SQL Editor:
--- Project: https://bybbtulfskobkknhihrl.supabase.co
+-- Dashboard: https://supabase.com/dashboard/project/bybbtulfskobkknhihrl/sql/new
 -- ==============================================================================
 
 -- 1. PROFILES (Extends Supabase auth.users)
@@ -16,17 +16,36 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+drop policy if exists "Users can view own profile" on public.profiles;
 create policy "Users can view own profile"
   on public.profiles for select
   using (auth.uid() = id);
 
+drop policy if exists "Users can update own profile" on public.profiles;
 create policy "Users can update own profile"
   on public.profiles for update
   using (auth.uid() = id);
 
+drop policy if exists "Users can insert own profile" on public.profiles;
 create policy "Users can insert own profile"
   on public.profiles for insert
   with check (auth.uid() = id);
+
+-- Auto-create profile entry when a new user signs up
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email)
+  values (new.id, new.email)
+  on conflict (id) do nothing;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
 
 -- 2. PLANS (Stores Canonical Timetable Metadata)
 create table if not exists public.plans (
@@ -39,6 +58,7 @@ create table if not exists public.plans (
 
 alter table public.plans enable row level security;
 
+drop policy if exists "Users can manage own plans" on public.plans;
 create policy "Users can manage own plans"
   on public.plans for all
   using (auth.uid() = user_id);
@@ -66,6 +86,7 @@ create index if not exists idx_schedule_blocks_plan on public.schedule_blocks (p
 
 alter table public.schedule_blocks enable row level security;
 
+drop policy if exists "Users can manage own schedule blocks" on public.schedule_blocks;
 create policy "Users can manage own schedule blocks"
   on public.schedule_blocks for all
   using (auth.uid() = user_id);
@@ -83,6 +104,7 @@ create table if not exists public.syllabus_topics (
 
 alter table public.syllabus_topics enable row level security;
 
+drop policy if exists "Users can manage own syllabus topics" on public.syllabus_topics;
 create policy "Users can manage own syllabus topics"
   on public.syllabus_topics for all
   using (auth.uid() = user_id);
@@ -99,6 +121,12 @@ create table if not exists public.exam_milestones (
 
 alter table public.exam_milestones enable row level security;
 
+drop policy if exists "Users can manage own exam milestones" on public.exam_milestones;
 create policy "Users can manage own exam milestones"
   on public.exam_milestones for all
   using (auth.uid() = user_id);
+
+-- 6. GRANT PERMISSIONS TO AUTHENTICATED & SERVICE ROLE
+grant usage on schema public to anon, authenticated, service_role;
+grant all on all tables in schema public to authenticated, service_role;
+grant all on all sequences in schema public to authenticated, service_role;
