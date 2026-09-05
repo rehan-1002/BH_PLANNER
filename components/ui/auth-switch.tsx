@@ -62,12 +62,8 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
       if (error) {
         setErrorMsg(error.message);
       } else if (data.session) {
-        if (!data.user.email_confirmed_at) {
-          setPendingEmail(signInEmail);
-          setVerificationPending(true);
-        } else {
-          router.push("/dashboard/overview");
-        }
+        router.refresh();
+        window.location.href = "/dashboard/overview";
       }
     } catch (err: any) {
       setErrorMsg(err?.message || "An unexpected error occurred during sign in");
@@ -105,7 +101,8 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
         setPendingEmail(signUpEmail);
         setVerificationPending(true);
       } else if (data.session) {
-        router.push("/dashboard/overview");
+        router.refresh();
+        window.location.href = "/dashboard/overview";
       }
     } catch (err: any) {
       setErrorMsg(err?.message || "An unexpected error occurred during registration");

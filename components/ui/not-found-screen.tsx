@@ -46,6 +46,19 @@ function MessageDisplay({ initialReason }: { initialReason?: string }) {
           reasonParam === "revoked"
         ) {
           setMode("deleted");
+          try {
+            localStorage.removeItem("bh_active_timetable");
+            localStorage.removeItem("bh_recovery_logs");
+            localStorage.removeItem("bh_syllabus_topics");
+            localStorage.removeItem("bh_calendar_milestones");
+            document.cookie.split(";").forEach((cookie) => {
+              const eqPos = cookie.indexOf("=");
+              const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+              if (name.startsWith("sb-") || name.includes("auth-token")) {
+                document.cookie = `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+              }
+            });
+          } catch {}
         } else {
           setMode("default");
         }

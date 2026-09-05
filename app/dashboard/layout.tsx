@@ -2,6 +2,7 @@ import { KineticNav } from "@/components/ui/kinetic-nav";
 import { CaptureShield } from "@/components/security/capture-shield";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 export const metadata = {
   title: "Dashboard — BH Planner",
@@ -13,6 +14,15 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = cookies();
+  const allCookies = cookieStore.getAll();
+  const hasAuthCookie = allCookies.some(
+    (c) =>
+      c.name.includes("-auth-token") ||
+      c.name.startsWith("sb-") ||
+      c.name === "supabase-auth-token"
+  );
+
   const supabase = createClient();
   const {
     data: { user },
@@ -29,8 +39,28 @@ export default async function DashboardLayout({
         (error as any).status === 500)
   );
 
-  if (!user || error) {
-    redirect(isNetworkError ? "/not-found?reason=offline" : "/not-found?reason=deleted");
+  const isAccountDeleted = Boolean(
+    hasAuthCookie &&
+      error &&
+      !isNetworkError &&
+      (error.message?.toLowerCase().includes("user not found") ||
+        error.message?.toLowerCase().includes("does not exist") ||
+        error.message?.toLowerCase().includes("sub claim") ||
+        (error as any).code === "user_not_found" ||
+        (error as any).status === 403 ||
+        (error as any).status === 404)
+  );
+
+  if (isNetworkError) {
+    redirect("/not-found?reason=offline");
+  }
+
+  if (isAccountDeleted) {
+    redirect("/not-found?reason=deleted");
+  }
+
+  if (!user) {
+    redirect("/auth?mode=signin");
   }
 
   return (

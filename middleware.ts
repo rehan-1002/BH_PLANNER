@@ -52,22 +52,63 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname === "/login" ||
     request.nextUrl.pathname === "/signup";
 
-  const isNetworkError =
-    Boolean(
-      error &&
-        (error.name === "AuthRetryableFetchError" ||
-          error.message?.toLowerCase().includes("fetch") ||
-          error.message?.toLowerCase().includes("network") ||
-          error.message?.toLowerCase().includes("failed to fetch") ||
-          error.status === 0 ||
-          error.status === 500)
-    );
+  const allCookies = request.cookies.getAll();
+  const hasAuthCookie = allCookies.some(
+    (c) =>
+      c.name.includes("-auth-token") ||
+      c.name.startsWith("sb-") ||
+      c.name === "supabase-auth-token"
+  );
 
-  if (isDashboardRoute && (!user || error)) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/not-found";
-    redirectUrl.searchParams.set("reason", isNetworkError ? "offline" : "deleted");
-    return NextResponse.redirect(redirectUrl);
+  const isNetworkError = Boolean(
+    error &&
+      (error.name === "AuthRetryableFetchError" ||
+        error.message?.toLowerCase().includes("fetch") ||
+        error.message?.toLowerCase().includes("network") ||
+        error.message?.toLowerCase().includes("failed to fetch") ||
+        (error as any).status === 0 ||
+        (error as any).status === 500)
+  );
+
+  const isAccountDeleted = Boolean(
+    hasAuthCookie &&
+      error &&
+      !isNetworkError &&
+      (error.message?.toLowerCase().includes("user not found") ||
+        error.message?.toLowerCase().includes("does not exist") ||
+        error.message?.toLowerCase().includes("sub claim") ||
+        (error as any).code === "user_not_found" ||
+        (error as any).status === 403 ||
+        (error as any).status === 404)
+  );
+
+  if (isDashboardRoute) {
+    if (isNetworkError) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/not-found";
+      redirectUrl.searchParams.set("reason", "offline");
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (isAccountDeleted) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/not-found";
+      redirectUrl.searchParams.set("reason", "deleted");
+      const res = NextResponse.redirect(redirectUrl);
+      allCookies.forEach((c) => {
+        if (c.name.includes("auth-token") || c.name.startsWith("sb-")) {
+          res.cookies.set({ name: c.name, value: "", maxAge: 0, path: "/" });
+        }
+      });
+      return res;
+    }
+
+    if (!user) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/auth";
+      redirectUrl.searchParams.set("mode", "signin");
+      return NextResponse.redirect(redirectUrl);
+    }
   }
 
   if (isAuthRoute && user && !error) {
@@ -81,7 +122,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
