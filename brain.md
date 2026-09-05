@@ -85,11 +85,17 @@ Next Priority:      Run supabase-schema.sql in Supabase SQL editor and connect l
 - **Validation:** Both routes compiled as static pages with zero errors.
 
 ### 5. Protected Dashboard Shell & Kinetic Navigation (@hardikkashiyani123456788)
-- **Status:** Implemented & Verified
+- **Status:** Implemented & Verified (1:1 with 21st.dev component)
 - **Route:** `/dashboard/*`
 - **Files:** `app/dashboard/layout.tsx`, `components/ui/kinetic-nav.tsx`, `components/security/capture-shield.tsx`
-- **Behavior:** Implements `@hardikkashiyani123456788/components/sterling-gate-kinetic-navigation`: centered floating frosted dock with magnetic cursor pull on hover (`useMotionValue`, `useSpring`), elastic stretching kinetic active pill (`layoutId="sterling-gate-kinetic-pill"`), micro-tilt icon reactivity, and tactile press scaling. Shared across all dashboard routes without component re-creation. Full-screen view contains subtle watermark.
-- **Validation:** Production build generated static pages for all 6 dashboard routes sharing the layout.
+- **Behavior:** Implements the exact 21st.dev `@hardikkashiyani123456788/components/sterling-gate-kinetic-navigation` architecture:
+  - Top header bar with brand logo (`nav-logo-row`), ThemeToggle, "click me" Caveat cursive label (`.sg-toggle-text`), and spinning cross / rolling text trigger (`.sg-nav-close-btn` with "Menu" / "Close" rolling animation).
+  - 3-layer animated curtain backdrops (`.sg-backdrop-layer.first` in violet, `.sg-backdrop-layer.second`, `.sg-backdrop-layer`) that stagger slide in from the right (`xPercent: 101 -> 0`).
+  - 5 reactive ambient background SVGs (`bg-shape-1` through `bg-shape-5`) with GSAP kinetic spring burst and rotation physics (`scale: 0.5 -> 1`, `opacity: 0 -> 1`, `rotation: -10 -> 0`) triggered on hover of each navigation item.
+  - Large uppercase typography links with slide-up text shadow transition (`transform: translateY(-1.1em)`) and rising dark background highlight (`scaleY: 0 -> 1`).
+  - Smooth routing between all 5 dashboard views (`Overview`, `Schedule`, `Syllabus`, `Copilot`, `Calendar`) with ESC key listener and automatic menu close on navigation.
+  - Full contrast visibility across Dark mode (`#0d0b14`) and Light mode (`#f8f7fc`).
+- **Validation:** Production build generated static pages for all dashboard routes with 0 errors.
 
 ### 6. Canonical Domain Schema & Validation Gate
 - **Status:** Implemented & Verified
