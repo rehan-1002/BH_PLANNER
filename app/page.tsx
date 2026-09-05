@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ChevronDown, ArrowRight } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
+
 import { KineticNav } from "@/components/ui/kinetic-nav";
 import { ScrollFloat } from "@/components/ui/scroll-float";
 import { HandwritingText } from "@/components/ui/handwriting";
@@ -19,26 +19,8 @@ export default function LandingPage() {
 
   return (
     <div className="relative w-full min-h-screen bg-canvas text-foreground selection:bg-accent/30 selection:text-foreground">
-      <div className="fixed top-5 left-6 z-50">
-        <ThemeToggle />
-      </div>
-
-      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-40">
+      <div className="fixed top-0 left-0 right-0 z-40">
         <KineticNav />
-      </div>
-
-      <div className="fixed top-5 right-6 z-50">
-        <Link
-          aria-label="BH Planner Home"
-          className="flex items-center justify-center size-9 rounded-xl glass-panel overflow-hidden hover:border-accent transition-colors"
-          href="/"
-        >
-          <img
-            src="/BH LOGO.webp"
-            alt="BH Logo"
-            className="size-6 object-contain"
-          />
-        </Link>
       </div>
 
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center">
