@@ -3,39 +3,33 @@
 > This file is the living implementation memory of BH Planner.
 > It records CURRENT REALITY only. No fiction. No intended behavior described as complete.
 > Updated after every meaningful implementation task.
-> Last updated: 2026-09-06 · Milestone 5 Complete
+> Last updated: 2026-09-06 · Milestone 6 Complete
 
 ---
 
 ## 1. CURRENT PROJECT STATE
 
 ```
-Project Phase:      Milestone 5 Complete — 1:1 Motion Physics & Component Alignment
-Current Milestone:  Exact 21st.dev Primitive Realization & Zero-Lock Visual Precision
+Project Phase:      Milestone 6 Complete — Design System Alignment & Header Refactoring
+Current Milestone:  Unified Header Anchors, Kinetic Sliding Pill & Flat Design Tokens Enforced
 Overall Completion: Complete frontend shell, landing page, auth gateway, interactive dashboard 
                     pages (Overview, Schedule, Syllabus, Copilot, Calendar), Tier-1 deterministic 
                     spillover engine, plan service state layer, Supabase SQL schema, dual-provider 
-                    AI generation & Copilot API routes. 4 components refactored to exact 1:1 physics 
-                    plus deterrence guard fixed for local inspection. Theme toggle preserved untouched.
-Last Implemented:   1. Fix Over-Triggering Blur Shield (components/security/capture-shield.tsx):
-                       - Removed window.onblur listener in development (process.env.NODE_ENV === "development").
-                       - In production, only triggers blur on document.visibilityState === "hidden" tab switch.
-                       - Maintains print suppression and contextmenu interception.
-                    2. Kinetic Navigation Magnetism (components/ui/kinetic-nav.tsx):
-                       - True magnetic pull on links with deltaX/deltaY calculation (* 0.2) and spring release.
-                       - Active pill indicator spring physics: { type: "spring", stiffness: 400, damping: 30 }.
-                       - Frosted container styling: rgba(26, 21, 38, 0.6), blur(16px), border rgba(147, 112, 219, 0.18).
-                    3. Real SVG Handwriting Brand Climax (components/ui/handwriting.tsx):
-                       - Real cursive vector SVG calligraphy paths for "BH PLANNER".
-                       - Staggered pathLength drawing: "BH" (#8b5cf6, 0.8s) -> "PLANNER" (#f3f0f9, 1.2s) -> flourish (0.5s).
-                       - On completion, triggers fade-in of frosted glass "JOIN" CTA button.
-                    4. Sliding Curtain Auth Switch (components/ui/auth-switch.tsx):
-                       - Two-column card container (max-w-2xl, min-h-[520px]) with sliding frosted curtain (w-1/2, z-20).
-                       - Sits left on "signup" (x: 0%) and slides right on "signin" (x: 100%) with stiffness: 260, damping: 25.
-                       - Preserves Supabase email verification lockout modal.
-                    5. Scroll-Scrubbed Text Reveal (components/ui/text-reveal.tsx):
-                       - Bound to container scroll progress via useScroll({ offset: ["start end", "end start"] }).
-                       - Word-level deblurring (blur(8px) -> blur(0px)), opacity (0.1 -> 1), and translateY (12px -> 0px).
+                    AI generation & Copilot API routes. KineticNav sliding pill and rounded-full container 
+                    implemented, purple dot removed. Header anchors cleanly decoupled with refined 
+                    frosted logo badge. Overview buttons and empty state card flattened with zero gradients.
+Last Implemented:   1. Kinetic Navigation Dock Refactoring (components/ui/kinetic-nav.tsx):
+                       - Removed floating purple dot.
+                       - Outer pill container: rounded-full border border-[rgba(147,112,219,0.18)] bg-[rgba(26,21,38,0.65)] backdrop-blur-xl px-2.5 py-1.5 shadow-2xl flex items-center gap-1.
+                       - Sliding kinetic pill backdrop: layoutId="kinetic-active-pill", bg-[#8b5cf6], spring stiffness: 380, damping: 30.
+                       - Magnetic pull on mouseMove (* 0.15) with spring reset on mouseLeave.
+                    2. Dashboard Header Layout & Logo Badge (app/dashboard/layout.tsx):
+                       - Clean fixed anchors: Top-Left ThemeToggle (z-50), Top-Center KineticNav (z-40), Top-Right refined frosted logo badge (z-50).
+                       - Removed duplicate header from app/layout.tsx to prevent double-rendering.
+                    3. Overview Action Buttons & Empty State Card (app/dashboard/overview/page.tsx):
+                       - Replaced all gradient styling with flat solid tokens: bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-medium px-4 py-2 rounded-xl text-xs.
+                       - Top-right action button uses clean 14px Lucide Plus icon.
+                       - Center empty state card uses pure frosted glass: bg-[rgba(26,21,38,0.45)] backdrop-blur-md border border-[rgba(147,112,219,0.12)] rounded-2xl.
 Current Blocker:    None. Production server active on port 3000.
 Next Priority:      Run supabase-schema.sql in Supabase SQL editor and connect live user auth sessions.
 ```
