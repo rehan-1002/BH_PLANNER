@@ -27,7 +27,8 @@ Last Implemented:   1. Auth redirect fix: unauthenticated users go to /auth not 
                     9. docs/ suite regenerated: PRD, FRD, Architecture, Folder Mgmt, Design, TechStack
                    10. JOIN button fixed to navigate to /auth?mode=signup
                    11. AI Engine upgraded: gemini-3.5-flash-lite + command-r7b (sub-5s timetable generation)
-                   12. All changes committed and deployed to Vercel production (tested live)
+                   12. Supabase Cloud Sync: PlanService seamlessly persists and restores plans & blocks to Supabase
+                   13. All changes committed and deployed to Vercel production (tested live)
 Current Blocker:    None.
 Next Priority:      Send email submission to Team Brainheaters with docs attached.
 ```
