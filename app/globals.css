@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Default Dark Mode (Violet Bloom baseline - flat/no gradient) */
+  --canvas: #0d0b14;
+  --panel: rgba(26, 21, 38, 0.55);
+  --panel-solid: #1a1526;
+  --border: rgba(147, 112, 219, 0.18);
+  --border-strong: rgba(147, 112, 219, 0.35);
+  --accent: #8b5cf6;
+  --accent-muted: rgba(139, 92, 246, 0.15);
+  --foreground: #f3f0f9;
+  --muted: #a79fb7;
+  --muted-subtle: #4e475c;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+html.light {
+  /* Violet Frost Light Mode */
+  --canvas: #f8f7fc;
+  --panel: rgba(255, 255, 255, 0.75);
+  --panel-solid: #ffffff;
+  --border: rgba(139, 92, 246, 0.15);
+  --border-strong: rgba(139, 92, 246, 0.3);
+  --accent: #8b5cf6;
+  --accent-muted: rgba(139, 92, 246, 0.1);
+  --foreground: #1a1526;
+  --muted: #6b6380;
+  --muted-subtle: #d0c9df;
+}
+
+html.dark {
+  --canvas: #0d0b14;
+  --panel: rgba(26, 21, 38, 0.55);
+  --panel-solid: #1a1526;
+  --border: rgba(147, 112, 219, 0.18);
+  --border-strong: rgba(147, 112, 219, 0.35);
+  --accent: #8b5cf6;
+  --accent-muted: rgba(139, 92, 246, 0.15);
+  --foreground: #f3f0f9;
+  --muted: #a79fb7;
+  --muted-subtle: #4e475c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--canvas);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Keyframe Entrance Animations - Safe, never locks opacity to 0 on delay */
+@keyframes fadeInSlide {
+  from {
+    opacity: 0.2;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInZoom {
+  from {
+    opacity: 0.2;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-entrance {
+  animation: fadeInSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-zoom-in {
+  animation: fadeInZoom 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-entrance,
+  .animate-zoom-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* View Transition API styles */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+/* Security / Deterrence: Print Suppression */
+@media print {
+  body {
+    display: none !important;
+  }
+}
+
+/* Watermark SVG styling for timetable view */
+.timetable-watermark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0.04;
+  overflow: hidden;
+}
+
+/* Selection */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: var(--foreground);
+}
