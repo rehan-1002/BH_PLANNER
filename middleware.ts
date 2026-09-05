@@ -41,8 +41,32 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Refreshes auth token if expired
-  await supabase.auth.getUser();
+  // Retrieve authenticated user from Supabase Auth
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  const isDashboardRoute = request.nextUrl.pathname.startsWith("/dashboard");
+  const isAuthRoute =
+    request.nextUrl.pathname === "/auth" ||
+    request.nextUrl.pathname === "/login" ||
+    request.nextUrl.pathname === "/signup";
+
+  // If user is deleted or session is invalid, deny access to dashboard
+  if (isDashboardRoute && (!user || error)) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/auth";
+    redirectUrl.searchParams.set("mode", "signin");
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // If user is already authenticated, redirect auth pages to dashboard
+  if (isAuthRoute && user && !error) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/dashboard/overview";
+    return NextResponse.redirect(redirectUrl);
+  }
 
   return response;
 }

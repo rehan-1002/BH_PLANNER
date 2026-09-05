@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import gsap from "gsap";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface MenuItem {
   name: string;
@@ -28,7 +30,27 @@ const menuItems: MenuItem[] = [
 export function KineticNav() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const pathname = usePathname();
+
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("bh_active_timetable");
+        localStorage.removeItem("bh_recovery_logs");
+        localStorage.removeItem("bh_syllabus_topics");
+        localStorage.removeItem("bh_calendar_milestones");
+      }
+    } catch (err) {
+      console.error("Sign out error:", err);
+    } finally {
+      closeMenu();
+      window.location.href = "/auth?mode=signin";
+    }
+  };
 
   // Initialize GSAP defaults and shape hover physics
   useEffect(() => {
@@ -794,6 +816,19 @@ export function KineticNav() {
                   <span className="text-accent font-semibold">Tier-1 Deterministic</span>
                   <span className="opacity-40">·</span>
                   <span className="opacity-70">Esc to Close</span>
+                </div>
+
+                <div className="pt-4 mt-2 border-t border-panel-border/40 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    disabled={loggingOut}
+                    className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-mono font-semibold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>{loggingOut ? "Signing Out..." : "Sign Out"}</span>
+                  </button>
+                  <span className="text-[11px] font-mono opacity-40">Encrypted Session</span>
                 </div>
               </div>
             </div>
