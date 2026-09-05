@@ -14,7 +14,7 @@ export default function LandingPage() {
   const router = useRouter();
 
   const handleJoin = () => {
-    router.push("/signup");
+    router.push("/auth?mode=signup");
   };
 
   return (
