@@ -70,14 +70,16 @@ Next Priority:      Run supabase-schema.sql in Supabase SQL editor and connect l
   Full-width layout, no horizontal scroll, high-contrast Dark & Light theme visibility, zero opacity lockouts.
 - **Validation:** Typecheck and production build verified cleanly.
 
-### 4. Dedicated Authentication Pages: Sign Up (/signup) & Sign In (/auth & /login)
+### 4. Authentication Gateway (@appvibed01/components/auth-switch)
 - **Status:** Implemented & Verified
-- **Routes:** `/signup`, `/auth`, `/login`
-- **Files:** `app/signup/page.tsx`, `app/auth/page.tsx`, `app/login/page.tsx`, `lib/supabase/client.ts`, `lib/supabase/server.ts`
+- **Routes:** `/auth`, `/login`, `/signup`
+- **Files:** `app/auth/page.tsx`, `components/ui/auth-switch.tsx`, `app/signup/page.tsx`, `app/login/page.tsx`, `lib/supabase/client.ts`, `lib/supabase/server.ts`
 - **Behavior:**
-  - `/signup`: Dedicated Sign Up page that appears when clicking `JOIN` from the landing page. Features email, password, confirm password, password strength/match validation, and Supabase email verification dispatch notice. Clean link to `/auth` ("Already have an account? Sign in here").
-  - `/auth` (and `/login`): Dedicated Sign In page for existing users. Features email and password fields, authentication state handling, unverified email detection, and clean link to `/signup` ("Don't have an account? Join BH Planner").
-  - Both routes are fully styled with Violet Bloom glass panels, canonical logo branding, theme toggles, and responsive layouts.
+  - Implements the exact `@appvibed01/components/auth-switch` sliding curtain authentication interface.
+  - Physical sliding frosted curtain overlay (`w-1/2`, `z-20`) glides smoothly between Sign In (`x: "100%"`) and Sign Up (`x: "0%"`) using Framer Motion spring physics (`type: "spring", stiffness: 260, damping: 25`).
+  - Added interactive **Show / Hide Password** buttons (`Eye` / `EyeOff`) with dedicated state toggles for Sign In password, Sign Up password, and Confirm Password fields.
+  - Exceptional theme visibility: solid contrast across Dark Mode (`#0d0b14` canvas, `#1a1526` panels) and Light Mode (`#f8f7fc` canvas, `#ffffff` panels) with zero bleed-through.
+  - Full Supabase integration with email verification state handling, redirecting confirmed students to `/dashboard/overview`.
 - **Validation:** Both routes compiled as static pages with zero errors.
 
 ### 5. Protected Dashboard Shell & Kinetic Navigation (@hardikkashiyani123456788)
