@@ -19,8 +19,18 @@ export default async function DashboardLayout({
     error,
   } = await supabase.auth.getUser();
 
+  const isNetworkError = Boolean(
+    error &&
+      (error.name === "AuthRetryableFetchError" ||
+        error.message?.toLowerCase().includes("fetch") ||
+        error.message?.toLowerCase().includes("network") ||
+        error.message?.toLowerCase().includes("failed to fetch") ||
+        (error as any).status === 0 ||
+        (error as any).status === 500)
+  );
+
   if (!user || error) {
-    redirect("/not-found?reason=deleted");
+    redirect(isNetworkError ? "/not-found?reason=offline" : "/not-found?reason=deleted");
   }
 
   return (

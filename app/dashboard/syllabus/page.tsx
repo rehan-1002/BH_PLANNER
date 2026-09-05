@@ -242,11 +242,11 @@ export default function SyllabusPage() {
       {/* Ingestion Modal */}
       {showIngestModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-md">
-          <div className="w-full max-w-lg p-6 rounded-2xl bg-panel border border-panel-border shadow-2xl">
-            <div className="flex items-center justify-between pb-4 border-b border-panel-border mb-4">
+          <div className="w-full max-w-lg p-6 rounded-2xl frosted-modal text-foreground shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-panel-border/60 mb-4">
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-accent" />
-                <h3 className="text-sm font-semibold text-foreground">Ingest Syllabus Text</h3>
+                <h3 className="text-sm font-semibold text-foreground tracking-tight">Ingest Syllabus Text</h3>
               </div>
               <button
                 type="button"
@@ -259,7 +259,7 @@ export default function SyllabusPage() {
 
             <form onSubmit={handleParseSyllabus} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-muted mb-1 font-mono">
+                <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                   SUBJECT NAME
                 </label>
                 <input
@@ -268,12 +268,12 @@ export default function SyllabusPage() {
                   placeholder="e.g. Computer Science or Engineering Physics"
                   value={subjectInput}
                   onChange={(e) => setSubjectInput(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground placeholder:text-muted/50"
+                  className="w-full px-3 py-2.5 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground placeholder:text-muted/60 focus:border-accent focus:ring-1 focus:ring-accent outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-muted mb-1 font-mono">
+                <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                   CURRICULUM TEXT / MODULES (one topic per line)
                 </label>
                 <textarea
@@ -282,7 +282,7 @@ export default function SyllabusPage() {
                   placeholder={`Module 1: Network Layer Protocols\nModule 1: IP Addressing and Subnetting\nModule 2: Transport Layer & TCP Congestion`}
                   value={pastedText}
                   onChange={(e) => setPastedText(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground font-mono placeholder:text-muted/50"
+                  className="w-full p-3 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground font-mono placeholder:text-muted/60 focus:border-accent focus:ring-1 focus:ring-accent outline-none leading-relaxed"
                 />
               </div>
 
@@ -290,13 +290,13 @@ export default function SyllabusPage() {
                 <button
                   type="button"
                   onClick={() => setShowIngestModal(false)}
-                  className="px-4 py-2 rounded-lg bg-panel border border-panel-border text-xs text-muted hover:text-foreground"
+                  className="px-4 py-2 rounded-lg bg-panel-solid border border-panel-border text-xs text-muted hover:text-foreground"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent/90 transition-colors shadow-sm"
+                  className="px-5 py-2.5 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent-hover transition-colors shadow-md"
                 >
                   Parse & Ingest Topics
                 </button>

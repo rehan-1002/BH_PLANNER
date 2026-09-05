@@ -191,11 +191,11 @@ export default function CalendarPage() {
       {/* Add Milestone Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-md">
-          <div className="w-full max-w-md p-6 rounded-2xl bg-panel border border-panel-border shadow-2xl">
-            <div className="flex items-center justify-between pb-4 border-b border-panel-border mb-4">
+          <div className="w-full max-w-md p-6 rounded-2xl frosted-modal text-foreground shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-panel-border/60 mb-4">
               <div className="flex items-center space-x-2">
                 <CalendarDays className="w-4 h-4 text-accent" />
-                <h3 className="text-sm font-semibold text-foreground">Add Exam Milestone</h3>
+                <h3 className="text-sm font-semibold text-foreground tracking-tight">Add Exam Milestone</h3>
               </div>
               <button
                 type="button"
@@ -208,7 +208,7 @@ export default function CalendarPage() {
 
             <form onSubmit={handleAddMilestone} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-muted mb-1 font-mono">
+                <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                   SUBJECT
                 </label>
                 <input
@@ -217,12 +217,12 @@ export default function CalendarPage() {
                   placeholder="e.g. Engineering Mathematics"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground"
+                  className="w-full px-3 py-2.5 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground focus:border-accent focus:ring-1 focus:ring-accent outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-muted mb-1 font-mono">
+                <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                   MILESTONE TITLE
                 </label>
                 <input
@@ -231,13 +231,13 @@ export default function CalendarPage() {
                   placeholder="e.g. Midterm Examination"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground"
+                  className="w-full px-3 py-2.5 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground focus:border-accent focus:ring-1 focus:ring-accent outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-muted mb-1 font-mono">
+                  <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                     EXAM DATE
                   </label>
                   <input
@@ -245,17 +245,17 @@ export default function CalendarPage() {
                     required
                     value={examDate}
                     onChange={(e) => setExamDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground font-mono"
+                    className="w-full px-3 py-2.5 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground font-mono focus:border-accent focus:ring-1 focus:ring-accent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-muted mb-1 font-mono">
+                  <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                     PRIORITY WEIGHT
                   </label>
                   <select
                     value={weight}
                     onChange={(e) => setWeight(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground font-mono"
+                    className="w-full px-3 py-2.5 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground font-mono focus:border-accent focus:ring-1 focus:ring-accent outline-none"
                   >
                     <option value="Standard">Standard</option>
                     <option value="High">High</option>
@@ -268,13 +268,13 @@ export default function CalendarPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-lg bg-panel border border-panel-border text-xs text-muted hover:text-foreground"
+                  className="px-4 py-2 rounded-lg bg-panel-solid border border-panel-border text-xs text-muted hover:text-foreground"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent-hover transition-colors"
+                  className="px-5 py-2.5 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent-hover transition-colors shadow-md"
                 >
                   Save Milestone
                 </button>

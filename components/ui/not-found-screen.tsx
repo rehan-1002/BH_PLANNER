@@ -28,43 +28,61 @@ function MessageDisplay({ initialReason }: { initialReason?: string }) {
   const [mode, setMode] = useState<NotFoundMode>("default");
 
   useEffect(() => {
-    // 1. Check URL search param on client
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const reasonParam = initialReason || params.get("reason") || params.get("error");
+    // 1. Connection check function
+    const evaluateConnection = () => {
+      if (typeof window !== "undefined") {
+        if (!navigator.onLine) {
+          setMode("offline");
+          return;
+        }
 
-      if (reasonParam === "deleted" || reasonParam === "account_deleted" || reasonParam === "revoked") {
-        setMode("deleted");
-      } else if (reasonParam === "offline" || reasonParam === "no_internet" || !navigator.onLine) {
-        setMode("offline");
-      } else {
-        setMode("default");
+        const params = new URLSearchParams(window.location.search);
+        const reasonParam = initialReason || params.get("reason") || params.get("error");
+
+        if (reasonParam === "offline" || reasonParam === "no_internet") {
+          setMode("offline");
+        } else if (
+          reasonParam === "deleted" ||
+          reasonParam === "account_deleted" ||
+          reasonParam === "revoked"
+        ) {
+          setMode("deleted");
+        } else {
+          setMode("default");
+        }
       }
-    }
+    };
+
+    evaluateConnection();
 
     // 2. Real-time online/offline event listeners
     const handleOffline = () => setMode("offline");
     const handleOnline = () => {
-      // If was offline, restore mode check
-      const params = new URLSearchParams(window.location.search);
-      const reason = params.get("reason");
-      if (reason === "deleted") setMode("deleted");
-      else setMode("default");
+      // Auto-redirect to dashboard when connection restores!
+      window.location.href = "/dashboard/overview";
     };
 
     window.addEventListener("offline", handleOffline);
     window.addEventListener("online", handleOnline);
 
+    // 3. Periodic liveness ping when in offline mode to detect immediate reconnection
+    const pingInterval = setInterval(() => {
+      if (typeof window !== "undefined" && navigator.onLine && mode === "offline") {
+        window.location.href = "/dashboard/overview";
+      }
+    }, 1500);
+
     const timer = setTimeout(() => {
       setIsVisible(true);
-    }, 1100);
+    }, 1000);
 
     return () => {
       clearTimeout(timer);
+      clearInterval(pingInterval);
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);
     };
-  }, [initialReason]);
+  }, [initialReason, mode]);
 
   // Mode-specific content configurations
   let badge = "ERROR 404";
@@ -80,11 +98,11 @@ function MessageDisplay({ initialReason }: { initialReason?: string }) {
     description =
       "Your account credentials have been removed from Supabase, or your authorization session was invalidated. Please register a new account or sign in to resume.";
   } else if (mode === "offline") {
-    badge = "NETWORK DISCONNECTED";
-    title = "Connection Severed";
-    code = "OFFLINE";
+    badge = "NO INTERNET CONNECTION";
+    title = "No Internet";
+    code = "NO INTERNET";
     description =
-      "You are currently disconnected from the internet. Please check your Wi-Fi, Ethernet, or mobile network connection to re-establish access.";
+      "Please check your network connection. You will be automatically redirected to your planner as soon as your connection is restored.";
   }
 
   return (

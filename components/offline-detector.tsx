@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 /**
  * Global Network Status Listener
@@ -10,38 +10,46 @@ import { useRouter, usePathname } from "next/navigation";
  * - Restores user session automatically as soon as internet connection resumes.
  */
 export function OfflineDetector() {
-  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // Initial check on load
-    if (typeof window !== "undefined" && !navigator.onLine && pathname !== "/not-found") {
-      router.push("/not-found?reason=offline");
+    // 1. Initial offline check
+    if (typeof window !== "undefined" && !navigator.onLine && !pathname.includes("/not-found")) {
+      window.location.href = "/not-found?reason=offline";
     }
 
+    // 2. Real-time offline listener
     const handleOffline = () => {
-      if (pathname !== "/not-found") {
-        router.push("/not-found?reason=offline");
+      if (!window.location.pathname.includes("/not-found")) {
+        window.location.href = "/not-found?reason=offline";
       }
     };
 
+    // 3. Real-time online listener (auto-redirect when connection resumes)
     const handleOnline = () => {
-      if (pathname === "/not-found") {
-        const search = window.location.search;
-        if (search.includes("reason=offline")) {
-          router.push("/dashboard/overview");
-        }
+      if (window.location.pathname.includes("/not-found")) {
+        window.location.href = "/dashboard/overview";
       }
     };
+
+    // 4. Polling check every 1.5s
+    const interval = setInterval(() => {
+      if (typeof window !== "undefined") {
+        if (!navigator.onLine && !window.location.pathname.includes("/not-found")) {
+          window.location.href = "/not-found?reason=offline";
+        }
+      }
+    }, 1500);
 
     window.addEventListener("offline", handleOffline);
     window.addEventListener("online", handleOnline);
 
     return () => {
+      clearInterval(interval);
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);
     };
-  }, [router, pathname]);
+  }, [pathname]);
 
   return null;
 }

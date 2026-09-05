@@ -345,11 +345,11 @@ export default function OverviewPage() {
       {/* Plan Generation / Configuration Modal */}
       {showGeneratorModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/80 backdrop-blur-md">
-          <div className="w-full max-w-lg p-6 rounded-2xl bg-panel border border-panel-border shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-panel-border mb-5">
+          <div className="w-full max-w-lg p-6 rounded-2xl frosted-modal text-foreground shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-panel-border/60 mb-5">
               <div className="flex items-center space-x-2">
                 <Sparkles className="w-4 h-4 text-accent" />
-                <h3 className="text-sm font-semibold text-foreground">
+                <h3 className="text-sm font-semibold text-foreground tracking-tight">
                   Academic Constraints & Plan Intake
                 </h3>
               </div>
@@ -365,7 +365,7 @@ export default function OverviewPage() {
             <form onSubmit={handleGenerateNewPlan} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-muted mb-1">
+                  <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                     College Start
                   </label>
                   <input
@@ -375,11 +375,11 @@ export default function OverviewPage() {
                     onChange={(e) =>
                       setCollegeHours({ ...collegeHours, start: e.target.value })
                     }
-                    className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground font-mono"
+                    className="w-full px-3 py-2.5 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground font-mono focus:border-accent focus:ring-1 focus:ring-accent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-muted mb-1">
+                  <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                     College End
                   </label>
                   <input
@@ -389,13 +389,13 @@ export default function OverviewPage() {
                     onChange={(e) =>
                       setCollegeHours({ ...collegeHours, end: e.target.value })
                     }
-                    className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground font-mono"
+                    className="w-full px-3 py-2.5 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground font-mono focus:border-accent focus:ring-1 focus:ring-accent outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-muted mb-1">
+                <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                   Commute / Reset Minutes
                 </label>
                 <input
@@ -404,13 +404,13 @@ export default function OverviewPage() {
                   max="240"
                   value={commuteMinutes}
                   onChange={(e) => setCommuteMinutes(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground font-mono"
+                  className="w-full px-3 py-2.5 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground font-mono focus:border-accent focus:ring-1 focus:ring-accent outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-muted mb-1">
+                  <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                     Subject Name
                   </label>
                   <input
@@ -419,11 +419,11 @@ export default function OverviewPage() {
                     placeholder="e.g. Engineering Mathematics"
                     value={examSubject}
                     onChange={(e) => setExamSubject(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground"
+                    className="w-full px-3 py-2.5 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground focus:border-accent focus:ring-1 focus:ring-accent outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-muted mb-1">
+                  <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                     Exam Date
                   </label>
                   <input
@@ -431,13 +431,13 @@ export default function OverviewPage() {
                     required
                     value={examDate}
                     onChange={(e) => setExamDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground font-mono"
+                    className="w-full px-3 py-2.5 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground font-mono focus:border-accent focus:ring-1 focus:ring-accent outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-muted mb-1">
+                <label className="block text-xs font-semibold text-foreground/90 mb-1 font-mono">
                   Syllabus Modules / Topics (one per line)
                 </label>
                 <textarea
@@ -446,7 +446,7 @@ export default function OverviewPage() {
                   placeholder={"e.g.\nLinear Algebra & Matrices\nDifferential Equations\nMultivariable Calculus"}
                   value={syllabusTopics}
                   onChange={(e) => setSyllabusTopics(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground font-mono"
+                  className="w-full p-3 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground font-mono focus:border-accent focus:ring-1 focus:ring-accent outline-none leading-relaxed"
                 />
               </div>
 
@@ -454,14 +454,14 @@ export default function OverviewPage() {
                 <button
                   type="button"
                   onClick={() => setShowGeneratorModal(false)}
-                  className="px-4 py-2 rounded-lg bg-panel border border-panel-border text-xs text-muted hover:text-foreground"
+                  className="px-4 py-2 rounded-lg bg-panel-solid border border-panel-border text-xs text-muted hover:text-foreground"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={generating}
-                  className="px-5 py-2 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent-hover transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent-hover transition-colors disabled:opacity-50 shadow-md"
                 >
                   {generating ? "Generating Plan via AI..." : "Generate Canonical Plan"}
                 </button>
