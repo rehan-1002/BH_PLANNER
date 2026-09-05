@@ -25,7 +25,9 @@ Last Implemented:   1. Auth redirect fix: unauthenticated users go to /auth not 
                     7. Codebase comments stripped across 27 source files (clean/professional)
                     8. README.md overhauled with full technical documentation
                     9. docs/ suite regenerated: PRD, FRD, Architecture, Folder Mgmt, Design, TechStack
-                   10. All changes committed and deployed to Vercel production
+                   10. JOIN button fixed to navigate to /auth?mode=signup
+                   11. AI Engine upgraded: gemini-3.5-flash-lite + command-r7b (sub-5s timetable generation)
+                   12. All changes committed and deployed to Vercel production (tested live)
 Current Blocker:    None.
 Next Priority:      Send email submission to Team Brainheaters with docs attached.
 ```
