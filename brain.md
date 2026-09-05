@@ -75,10 +75,12 @@ Next Priority:      Run supabase-schema.sql in Supabase SQL editor and connect l
 - **Routes:** `/auth`, `/login`, `/signup`
 - **Files:** `app/auth/page.tsx`, `components/ui/auth-switch.tsx`, `app/signup/page.tsx`, `app/login/page.tsx`, `lib/supabase/client.ts`, `lib/supabase/server.ts`
 - **Behavior:**
-  - Implements the exact `@appvibed01/components/auth-switch` sliding curtain authentication interface.
-  - Physical sliding frosted curtain overlay (`w-1/2`, `z-20`) glides smoothly between Sign In (`x: "100%"`) and Sign Up (`x: "0%"`) using Framer Motion spring physics (`type: "spring", stiffness: 260, damping: 25`).
-  - Added interactive **Show / Hide Password** buttons (`Eye` / `EyeOff`) with dedicated state toggles for Sign In password, Sign Up password, and Confirm Password fields.
-  - Exceptional theme visibility: solid contrast across Dark Mode (`#0d0b14` canvas, `#1a1526` panels) and Light Mode (`#f8f7fc` canvas, `#ffffff` panels) with zero bleed-through.
+  - Implements the exact 21st.dev `@appvibed01/components/auth-switch` component architecture:
+    - Circular rotating/translating bubble shape (`.as-container:before`) with a vibrant Violet Bloom gradient (`linear-gradient(-45deg, #8b5cf6 0%, #6d28d9 100%)`) that translates between Sign In and Sign Up (`right: 48%` -> `transform: translate(100%, -50%); right: 52%`).
+    - Staggered horizontal translation of left and right panel content (`translateX(-800px)` / `translateX(800px)`).
+    - Grid-based crossfade transition between Sign In and Sign Up forms with social platform icons.
+  - Added interactive **Show / Hide Password** toggle buttons (`Eye` / `EyeOff`) with dedicated state toggles for all password fields.
+  - Dual-theme high-contrast styling: deep obsidian glass in dark mode (`#0d0b14` canvas, `#1a1526` inputs) and crisp frosted violet in light mode (`#f8f7fc` canvas, `#ffffff` card, `#f2edf9` inputs) with zero contrast loss.
   - Full Supabase integration with email verification state handling, redirecting confirmed students to `/dashboard/overview`.
 - **Validation:** Both routes compiled as static pages with zero errors.
 

@@ -1,21 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
   Lock,
   Eye,
   EyeOff,
+  User,
   AlertCircle,
   CheckCircle2,
-  ArrowRight,
   Loader2,
-  ShieldCheck,
-  Sparkles,
-  CalendarCheck,
-  Hourglass,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -24,28 +19,24 @@ interface AuthSwitchProps {
 }
 
 /**
- * @appvibed01/components/auth-switch
- * Dual-Mode Physical Sliding Curtain Authentication Switch:
- * - Two-column base container (Sign In on left, Sign Up on right)
- * - Sliding frosted curtain overlay with spring motion physics
- * - Interactive Show/Hide Password buttons
- * - High-visibility styling across both Dark (#0d0b14) & Light (#f8f7fc) themes
- * - Supabase authentication integration & email verification gating
+ * EXACT @appvibed01/components/auth-switch
+ * - Curved bubble sliding panel transition between Sign In and Sign Up
+ * - Show / Hide Password buttons on all password inputs
+ * - High-contrast visibility across both Dark (#0d0b14) & Light (#f8f7fc) themes
+ * - Integrated Supabase auth handling & email verification flow
  */
 export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Mode state ("signin" or "signup")
   const urlMode = searchParams?.get("mode");
-  const [mode, setMode] = useState<"signin" | "signup">(
-    urlMode === "signup" ? "signup" : initialMode
+  const [isSignUp, setIsSignUp] = useState(
+    urlMode === "signup" || initialMode === "signup"
   );
 
   useEffect(() => {
-    if (urlMode === "signup" || urlMode === "signin") {
-      setMode(urlMode);
-    }
+    if (urlMode === "signup") setIsSignUp(true);
+    else if (urlMode === "signin") setIsSignUp(false);
   }, [urlMode]);
 
   // Form states
@@ -53,11 +44,10 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
   const [signInPassword, setSignInPassword] = useState("");
   const [showSignInPassword, setShowSignInPassword] = useState(false);
 
+  const [signUpUsername, setSignUpUsername] = useState("");
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
-  const [signUpConfirmPassword, setSignUpConfirmPassword] = useState("");
-  const [showSignUpConfirmPassword, setShowSignUpConfirmPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -98,11 +88,6 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
     e.preventDefault();
     setErrorMsg(null);
 
-    if (signUpPassword !== signUpConfirmPassword) {
-      setErrorMsg("Passwords do not match");
-      return;
-    }
-
     if (signUpPassword.length < 6) {
       setErrorMsg("Password must be at least 6 characters");
       return;
@@ -115,6 +100,9 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
         email: signUpEmail,
         password: signUpPassword,
         options: {
+          data: {
+            username: signUpUsername || signUpEmail.split("@")[0],
+          },
           emailRedirectTo: `${window.location.origin}/dashboard/overview`,
         },
       });
@@ -134,7 +122,6 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
     }
   };
 
-  // Mandatory Email Verification Lockout Card
   if (verificationPending) {
     return (
       <div className="w-full max-w-md p-8 rounded-3xl glass-panel text-center shadow-2xl border border-panel-border space-y-6">
@@ -158,7 +145,7 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
           type="button"
           onClick={() => {
             setVerificationPending(false);
-            setMode("signin");
+            setIsSignUp(false);
             setErrorMsg(null);
           }}
           className="w-full py-2.5 px-4 rounded-xl bg-accent text-white font-medium text-xs hover:bg-accent-hover transition-colors shadow-md focus:outline-none"
@@ -169,376 +156,721 @@ export function AuthSwitch({ initialMode = "signin" }: AuthSwitchProps) {
     );
   }
 
-  const isSignUp = mode === "signup";
-
   return (
-    <div className="relative w-full max-w-3xl min-h-[560px] overflow-hidden rounded-3xl glass-panel shadow-2xl border border-panel-border">
-      {/* =================================================================== */}
-      {/* MOBILE SEGMENTED CONTROL (< md)                                     */}
-      {/* =================================================================== */}
-      <div className="md:hidden p-4 border-b border-panel-border bg-canvas/40">
-        <div className="relative flex items-center p-1 rounded-xl bg-canvas/80 border border-panel-border">
-          <button
-            type="button"
-            onClick={() => {
-              setMode("signin");
-              setErrorMsg(null);
-            }}
-            className={`relative z-10 flex-1 py-2 text-xs font-medium transition-colors ${
-              !isSignUp ? "text-foreground font-bold" : "text-muted hover:text-foreground"
-            }`}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode("signup");
-              setErrorMsg(null);
-            }}
-            className={`relative z-10 flex-1 py-2 text-xs font-medium transition-colors ${
-              isSignUp ? "text-foreground font-bold" : "text-muted hover:text-foreground"
-            }`}
-          >
-            Create Account
-          </button>
-          <motion.div
-            layout
-            transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className={`absolute inset-y-1 rounded-lg bg-panel-solid border border-panel-border shadow-sm ${
-              !isSignUp ? "left-1 right-1/2" : "left-1/2 right-1"
-            }`}
-          />
-        </div>
-      </div>
+    <>
+      <style>{`
+        .as-container {
+          position: relative;
+          width: 100%;
+          max-width: 920px;
+          height: 560px;
+          border-radius: 24px;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+          overflow: hidden;
+          transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
 
-      {/* ERROR MESSAGE NOTIFICATION */}
-      <AnimatePresence>
-        {errorMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="mx-6 mt-4 p-3 rounded-xl bg-status-missed/10 border border-status-missed/30 text-status-missed text-xs flex items-center space-x-2"
-          >
-            <AlertCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
-            <span className="font-medium">{errorMsg}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        /* Dual Theme Container Styling */
+        html.dark .as-container {
+          background: rgba(26, 21, 38, 0.85);
+          border: 1px solid rgba(147, 112, 219, 0.22);
+          backdrop-filter: blur(20px);
+        }
 
-      {/* =================================================================== */}
-      {/* TWO-COLUMN BASE LAYER                                               */}
-      {/* =================================================================== */}
-      <div className="relative w-full min-h-[560px] flex flex-col md:flex-row">
-        {/* ================================================================= */}
-        {/* LEFT COLUMN: SIGN IN FORM (revealed when curtain slides to right)   */}
-        {/* ================================================================= */}
-        <div
-          className={`w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-center transition-opacity duration-300 ${
-            isSignUp ? "md:pointer-events-none md:opacity-20" : "opacity-100"
-          } ${isSignUp ? "hidden md:flex" : "flex"}`}
-        >
-          <div className="w-full max-w-sm mx-auto space-y-6">
-            <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-accent font-bold px-2 py-0.5 rounded-md bg-accent/10 border border-accent/20">
-                Access Portal
-              </span>
-              <h2 className="text-2xl font-bold tracking-tight text-foreground mt-2">
-                Sign In
-              </h2>
-              <p className="text-xs text-muted mt-1 leading-relaxed">
-                Resume your adaptive study runway and timetable checklist.
-              </p>
-            </div>
+        html.light .as-container {
+          background: rgba(255, 255, 255, 0.95);
+          border: 1px solid rgba(139, 92, 246, 0.25);
+          box-shadow: 0 20px 50px rgba(139, 92, 246, 0.12);
+        }
 
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-muted font-medium mb-1.5">
-                  Academic Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-3 w-4 h-4 text-muted pointer-events-none" strokeWidth={1.75} />
-                  <input
-                    type="email"
-                    required
-                    value={signInEmail}
-                    onChange={(e) => setSignInEmail(e.target.value)}
-                    placeholder="student@university.edu"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-canvas/70 border border-panel-border text-xs sm:text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent font-sans transition-colors"
-                  />
+        .as-forms-container {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+        }
+
+        .as-signin-signup {
+          position: absolute;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          left: 75%;
+          width: 50%;
+          transition: 1s 0.7s ease-in-out;
+          display: grid;
+          grid-template-columns: 1fr;
+          z-index: 5;
+        }
+
+        .as-form {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          padding: 0 3.5rem;
+          transition: all 0.2s 0.7s;
+          overflow: hidden;
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+          width: 100%;
+        }
+
+        .as-form.as-sign-up-form {
+          opacity: 0;
+          z-index: 1;
+          pointer-events: none;
+        }
+
+        .as-form.as-sign-in-form {
+          z-index: 2;
+          opacity: 1;
+          pointer-events: all;
+        }
+
+        .as-title {
+          font-size: 2rem;
+          margin-bottom: 8px;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+        }
+
+        html.dark .as-title {
+          color: #f3f0f9;
+        }
+
+        html.light .as-title {
+          color: #120e1f;
+        }
+
+        .as-input-field {
+          max-width: 360px;
+          width: 100%;
+          margin: 8px 0;
+          height: 52px;
+          border-radius: 52px;
+          display: flex;
+          align-items: center;
+          padding: 0 1.2rem;
+          position: relative;
+          transition: 0.3s;
+        }
+
+        html.dark .as-input-field {
+          background-color: rgba(13, 11, 20, 0.75);
+          border: 1px solid rgba(147, 112, 219, 0.25);
+        }
+
+        html.light .as-input-field {
+          background-color: #f2edf9;
+          border: 1px solid rgba(139, 92, 246, 0.25);
+        }
+
+        .as-input-field:focus-within {
+          box-shadow: 0 0 0 2px #8b5cf6;
+        }
+
+        .as-input-icon {
+          color: #8b5cf6;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 22px;
+          margin-right: 12px;
+        }
+
+        .as-input {
+          background: none;
+          outline: none;
+          border: none;
+          line-height: 1;
+          font-weight: 500;
+          font-size: 0.92rem;
+          width: 100%;
+        }
+
+        html.dark .as-input {
+          color: #f3f0f9;
+        }
+
+        html.light .as-input {
+          color: #120e1f;
+        }
+
+        .as-input::placeholder {
+          font-weight: 400;
+        }
+
+        html.dark .as-input::placeholder {
+          color: #857e96;
+        }
+
+        html.light .as-input::placeholder {
+          color: #7a708c;
+        }
+
+        .as-password-toggle {
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: #8b5cf6;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4px;
+          margin-left: 6px;
+          transition: opacity 0.2s;
+        }
+
+        .as-password-toggle:hover {
+          opacity: 0.8;
+        }
+
+        .as-btn {
+          width: 160px;
+          background-color: #8b5cf6;
+          border: none;
+          outline: none;
+          height: 46px;
+          border-radius: 46px;
+          color: #fff;
+          text-transform: uppercase;
+          font-weight: 700;
+          margin: 12px 0 6px 0;
+          cursor: pointer;
+          transition: 0.4s;
+          font-size: 0.82rem;
+          letter-spacing: 0.04em;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+        }
+
+        .as-btn:hover {
+          background-color: #7c3aed;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(139, 92, 246, 0.55);
+        }
+
+        .as-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .as-panels-container {
+          position: absolute;
+          height: 100%;
+          width: 100%;
+          top: 0;
+          left: 0;
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .as-panel {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          justify-content: space-around;
+          text-align: center;
+          z-index: 6;
+        }
+
+        .as-left-panel {
+          pointer-events: all;
+          padding: 3rem 16% 2rem 10%;
+        }
+
+        .as-right-panel {
+          pointer-events: none;
+          padding: 3rem 10% 2rem 16%;
+        }
+
+        .as-panel .as-content {
+          color: #ffffff;
+          transition: transform 0.9s ease-in-out;
+          transition-delay: 0.6s;
+        }
+
+        .as-panel h3 {
+          font-weight: 700;
+          line-height: 1.2;
+          font-size: 1.65rem;
+          margin-bottom: 12px;
+          letter-spacing: -0.02em;
+        }
+
+        .as-panel p {
+          font-size: 0.92rem;
+          padding: 0.6rem 0;
+          line-height: 1.5;
+          opacity: 0.95;
+        }
+
+        .as-btn.as-transparent {
+          margin-top: 14px;
+          background: none;
+          border: 2px solid #ffffff;
+          width: 140px;
+          height: 42px;
+          font-weight: 700;
+          font-size: 0.8rem;
+          color: #ffffff;
+          box-shadow: none;
+        }
+
+        .as-btn.as-transparent:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .as-right-panel .as-content {
+          transform: translateX(800px);
+        }
+
+        /* Curving Bubble Sliding Overlay */
+        .as-container:before {
+          content: "";
+          position: absolute;
+          height: 2000px;
+          width: 2000px;
+          top: -10%;
+          right: 48%;
+          transform: translateY(-50%);
+          background: linear-gradient(-45deg, #8b5cf6 0%, #6d28d9 100%);
+          transition: 1.8s ease-in-out;
+          border-radius: 50%;
+          z-index: 6;
+          box-shadow: 0 0 50px rgba(109, 40, 217, 0.4);
+        }
+
+        /* Sign-Up Mode Active States */
+        .as-container.as-sign-up-mode:before {
+          transform: translate(100%, -50%);
+          right: 52%;
+        }
+
+        .as-container.as-sign-up-mode .as-left-panel .as-content {
+          transform: translateX(-800px);
+        }
+
+        .as-container.as-sign-up-mode .as-signin-signup {
+          left: 25%;
+        }
+
+        .as-container.as-sign-up-mode .as-form.as-sign-up-form {
+          opacity: 1;
+          z-index: 2;
+          pointer-events: all;
+        }
+
+        .as-container.as-sign-up-mode .as-form.as-sign-in-form {
+          opacity: 0;
+          z-index: 1;
+          pointer-events: none;
+        }
+
+        .as-container.as-sign-up-mode .as-right-panel .as-content {
+          transform: translateX(0%);
+        }
+
+        .as-container.as-sign-up-mode .as-left-panel {
+          pointer-events: none;
+        }
+
+        .as-container.as-sign-up-mode .as-right-panel {
+          pointer-events: all;
+        }
+
+        .as-social-text {
+          padding: 0.6rem 0;
+          font-size: 0.85rem;
+          font-family: var(--font-mono);
+        }
+
+        html.dark .as-social-text {
+          color: #a79fb7;
+        }
+
+        html.light .as-social-text {
+          color: #5d546f;
+        }
+
+        .as-social-media {
+          display: flex;
+          justify-content: center;
+          gap: 14px;
+        }
+
+        .as-social-icon {
+          height: 42px;
+          width: 42px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border-radius: 50%;
+          transition: 0.3s;
+          cursor: pointer;
+        }
+
+        html.dark .as-social-icon {
+          border: 1px solid rgba(147, 112, 219, 0.25);
+          color: #f3f0f9;
+          background: rgba(13, 11, 20, 0.5);
+        }
+
+        html.light .as-social-icon {
+          border: 1px solid rgba(139, 92, 246, 0.25);
+          color: #120e1f;
+          background: #f5f2fa;
+        }
+
+        .as-social-icon:hover {
+          border-color: #8b5cf6;
+          transform: translateY(-3px);
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .as-error-box {
+          margin-bottom: 10px;
+          padding: 8px 14px;
+          border-radius: 12px;
+          background: rgba(239, 68, 68, 0.12);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          color: #ef4444;
+          font-size: 0.78rem;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          max-width: 360px;
+          width: 100%;
+        }
+
+        /* Mobile layout adjustments */
+        @media (max-width: 870px) {
+          .as-container {
+            min-height: 680px;
+            height: auto;
+          }
+          .as-signin-signup {
+            width: 100%;
+            top: 92%;
+            transform: translate(-50%, -100%);
+            transition: 1s 0.8s ease-in-out;
+          }
+          .as-signin-signup,
+          .as-container.as-sign-up-mode .as-signin-signup {
+            left: 50%;
+          }
+          .as-panels-container {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 2fr 1fr;
+          }
+          .as-panel {
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+            padding: 2.2rem 8%;
+            grid-column: 1 / 2;
+          }
+          .as-right-panel {
+            grid-row: 3 / 4;
+          }
+          .as-left-panel {
+            grid-row: 1 / 2;
+          }
+          .as-panel .as-content {
+            padding-right: 10%;
+            transition: transform 0.9s ease-in-out;
+            transition-delay: 0.8s;
+          }
+          .as-panel h3 {
+            font-size: 1.3rem;
+          }
+          .as-panel p {
+            font-size: 0.78rem;
+            padding: 0.3rem 0;
+          }
+          .as-btn.as-transparent {
+            width: 110px;
+            height: 36px;
+            font-size: 0.72rem;
+          }
+          .as-container:before {
+            width: 1500px;
+            height: 1500px;
+            transform: translateX(-50%);
+            left: 30%;
+            bottom: 68%;
+            right: initial;
+            top: initial;
+            transition: 2s ease-in-out;
+          }
+          .as-container.as-sign-up-mode:before {
+            transform: translate(-50%, 100%);
+            bottom: 32%;
+            right: initial;
+          }
+          .as-container.as-sign-up-mode .as-left-panel .as-content {
+            transform: translateY(-300px);
+          }
+          .as-container.as-sign-up-mode .as-right-panel .as-content {
+            transform: translateY(0px);
+          }
+          .as-right-panel .as-content {
+            transform: translateY(300px);
+          }
+          .as-container.as-sign-up-mode .as-signin-signup {
+            top: 8%;
+            transform: translate(-50%, 0);
+          }
+        }
+
+        @media (max-width: 570px) {
+          .as-form {
+            padding: 0 1.5rem;
+          }
+          .as-panel .as-content {
+            padding: 0.5rem 1rem;
+          }
+        }
+      `}</style>
+
+      <div className={`as-container ${isSignUp ? "as-sign-up-mode" : ""}`}>
+        <div className="as-forms-container">
+          <div className="as-signin-signup">
+            {/* ============================================================= */}
+            {/* SIGN IN FORM                                                  */}
+            {/* ============================================================= */}
+            <form onSubmit={handleSignIn} className="as-form as-sign-in-form">
+              <h2 className="as-title">Sign in</h2>
+
+              {errorMsg && !isSignUp && (
+                <div className="as-error-box">
+                  <AlertCircle size={15} />
+                  <span>{errorMsg}</span>
                 </div>
+              )}
+
+              <div className="as-input-field">
+                <span className="as-input-icon">
+                  <Mail size={18} />
+                </span>
+                <input
+                  type="email"
+                  required
+                  placeholder="Email"
+                  value={signInEmail}
+                  onChange={(e) => setSignInEmail(e.target.value)}
+                  className="as-input"
+                />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-muted font-medium mb-1.5">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-muted pointer-events-none" strokeWidth={1.75} />
-                  <input
-                    type={showSignInPassword ? "text" : "password"}
-                    required
-                    value={signInPassword}
-                    onChange={(e) => setSignInPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-11 py-2.5 rounded-xl bg-canvas/70 border border-panel-border text-xs sm:text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent font-sans transition-colors"
-                  />
-                  {/* Show / Hide Password Button */}
-                  <button
-                    type="button"
-                    onClick={() => setShowSignInPassword(!showSignInPassword)}
-                    className="absolute right-3 top-2.5 p-1 text-muted hover:text-foreground transition-colors focus:outline-none rounded-lg"
-                    aria-label={showSignInPassword ? "Hide password" : "Show password"}
-                  >
-                    {showSignInPassword ? (
-                      <EyeOff className="w-4 h-4 text-accent" strokeWidth={1.75} />
-                    ) : (
-                      <Eye className="w-4 h-4" strokeWidth={1.75} />
-                    )}
-                  </button>
-                </div>
+              <div className="as-input-field">
+                <span className="as-input-icon">
+                  <Lock size={18} />
+                </span>
+                <input
+                  type={showSignInPassword ? "text" : "password"}
+                  required
+                  placeholder="Password"
+                  value={signInPassword}
+                  onChange={(e) => setSignInPassword(e.target.value)}
+                  className="as-input"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSignInPassword(!showSignInPassword)}
+                  className="as-password-toggle"
+                  aria-label={showSignInPassword ? "Hide password" : "Show password"}
+                >
+                  {showSignInPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl bg-accent text-white font-medium text-xs sm:text-sm transition-all hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-canvas disabled:opacity-50 disabled:cursor-not-allowed shadow-md active:scale-95 mt-2"
-              >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+              <button type="submit" disabled={loading} className="as-btn">
+                {loading && !isSignUp ? (
+                  <Loader2 size={16} className="animate-spin" />
                 ) : (
-                  <>
-                    <span>Sign In</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
+                  "Login"
                 )}
               </button>
+
+              <p className="as-social-text">Or sign in with social platforms</p>
+              <div className="as-social-media">
+                <SocialIcons />
+              </div>
             </form>
 
-            <div className="pt-2 text-center md:hidden">
-              <button
-                type="button"
-                onClick={() => {
-                  setErrorMsg(null);
-                  setMode("signup");
-                }}
-                className="text-xs text-muted font-mono hover:text-accent transition-colors"
-              >
-                Don&apos;t have an account? <span className="text-accent font-bold">Create Account</span>
+            {/* ============================================================= */}
+            {/* SIGN UP FORM                                                  */}
+            {/* ============================================================= */}
+            <form onSubmit={handleSignUp} className="as-form as-sign-up-form">
+              <h2 className="as-title">Sign up</h2>
+
+              {errorMsg && isSignUp && (
+                <div className="as-error-box">
+                  <AlertCircle size={15} />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
+              <div className="as-input-field">
+                <span className="as-input-icon">
+                  <User size={18} />
+                </span>
+                <input
+                  type="text"
+                  placeholder="Username"
+                  value={signUpUsername}
+                  onChange={(e) => setSignUpUsername(e.target.value)}
+                  className="as-input"
+                />
+              </div>
+
+              <div className="as-input-field">
+                <span className="as-input-icon">
+                  <Mail size={18} />
+                </span>
+                <input
+                  type="email"
+                  required
+                  placeholder="Email"
+                  value={signUpEmail}
+                  onChange={(e) => setSignUpEmail(e.target.value)}
+                  className="as-input"
+                />
+              </div>
+
+              <div className="as-input-field">
+                <span className="as-input-icon">
+                  <Lock size={18} />
+                </span>
+                <input
+                  type={showSignUpPassword ? "text" : "password"}
+                  required
+                  placeholder="Password"
+                  value={signUpPassword}
+                  onChange={(e) => setSignUpPassword(e.target.value)}
+                  className="as-input"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                  className="as-password-toggle"
+                  aria-label={showSignUpPassword ? "Hide password" : "Show password"}
+                >
+                  {showSignUpPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+
+              <button type="submit" disabled={loading} className="as-btn">
+                {loading && isSignUp ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  "Sign up"
+                )}
               </button>
-            </div>
+
+              <p className="as-social-text">Or sign up with social platforms</p>
+              <div className="as-social-media">
+                <SocialIcons />
+              </div>
+            </form>
           </div>
         </div>
 
         {/* ================================================================= */}
-        {/* RIGHT COLUMN: SIGN UP FORM (revealed when curtain slides to left)  */}
+        {/* PANELS (Curved Sliding Content Layers)                            */}
         {/* ================================================================= */}
-        <div
-          className={`w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-center transition-opacity duration-300 ${
-            !isSignUp ? "md:pointer-events-none md:opacity-20" : "opacity-100"
-          } ${!isSignUp ? "hidden md:flex" : "flex"}`}
-        >
-          <div className="w-full max-w-sm mx-auto space-y-5">
-            <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-accent font-bold px-2 py-0.5 rounded-md bg-accent/10 border border-accent/20">
-                New Semester
-              </span>
-              <h2 className="text-2xl font-bold tracking-tight text-foreground mt-2">
-                Create Account
-              </h2>
-              <p className="text-xs text-muted mt-1 leading-relaxed">
-                Configure your lecture commitments, study blocks, and syllabus.
+        <div className="as-panels-container">
+          <div className="as-panel as-left-panel">
+            <div className="as-content">
+              <h3>New here?</h3>
+              <p>
+                Join BH Planner today to automate your semester timetable, commute buffers, and exam runway.
               </p>
-            </div>
-
-            <form onSubmit={handleSignUp} className="space-y-3.5">
-              <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-muted font-medium mb-1.5">
-                  Student Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-3 w-4 h-4 text-muted pointer-events-none" strokeWidth={1.75} />
-                  <input
-                    type="email"
-                    required
-                    value={signUpEmail}
-                    onChange={(e) => setSignUpEmail(e.target.value)}
-                    placeholder="student@university.edu"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-canvas/70 border border-panel-border text-xs sm:text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent font-sans transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-muted font-medium mb-1.5">
-                  Create Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-muted pointer-events-none" strokeWidth={1.75} />
-                  <input
-                    type={showSignUpPassword ? "text" : "password"}
-                    required
-                    value={signUpPassword}
-                    onChange={(e) => setSignUpPassword(e.target.value)}
-                    placeholder="Minimum 6 characters"
-                    className="w-full pl-10 pr-11 py-2.5 rounded-xl bg-canvas/70 border border-panel-border text-xs sm:text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent font-sans transition-colors"
-                  />
-                  {/* Show / Hide Password Button */}
-                  <button
-                    type="button"
-                    onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                    className="absolute right-3 top-2.5 p-1 text-muted hover:text-foreground transition-colors focus:outline-none rounded-lg"
-                    aria-label={showSignUpPassword ? "Hide password" : "Show password"}
-                  >
-                    {showSignUpPassword ? (
-                      <EyeOff className="w-4 h-4 text-accent" strokeWidth={1.75} />
-                    ) : (
-                      <Eye className="w-4 h-4" strokeWidth={1.75} />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-muted font-medium mb-1.5">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-muted pointer-events-none" strokeWidth={1.75} />
-                  <input
-                    type={showSignUpConfirmPassword ? "text" : "password"}
-                    required
-                    value={signUpConfirmPassword}
-                    onChange={(e) => setSignUpConfirmPassword(e.target.value)}
-                    placeholder="Repeat password"
-                    className="w-full pl-10 pr-11 py-2.5 rounded-xl bg-canvas/70 border border-panel-border text-xs sm:text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent font-sans transition-colors"
-                  />
-                  {/* Show / Hide Password Button */}
-                  <button
-                    type="button"
-                    onClick={() => setShowSignUpConfirmPassword(!showSignUpConfirmPassword)}
-                    className="absolute right-3 top-2.5 p-1 text-muted hover:text-foreground transition-colors focus:outline-none rounded-lg"
-                    aria-label={showSignUpConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-                  >
-                    {showSignUpConfirmPassword ? (
-                      <EyeOff className="w-4 h-4 text-accent" strokeWidth={1.75} />
-                    ) : (
-                      <Eye className="w-4 h-4" strokeWidth={1.75} />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl bg-accent text-white font-medium text-xs sm:text-sm transition-all hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-canvas disabled:opacity-50 disabled:cursor-not-allowed shadow-md active:scale-95 mt-1"
-              >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <span>Create Account</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="pt-2 text-center md:hidden">
               <button
                 type="button"
+                className="as-btn as-transparent"
                 onClick={() => {
                   setErrorMsg(null);
-                  setMode("signin");
+                  setIsSignUp(true);
                 }}
-                className="text-xs text-muted font-mono hover:text-accent transition-colors"
               >
-                Already have an account? <span className="text-accent font-bold">Sign In</span>
+                Sign up
+              </button>
+            </div>
+          </div>
+
+          <div className="as-panel as-right-panel">
+            <div className="as-content">
+              <h3>One of us?</h3>
+              <p>
+                Welcome back! Sign in to inspect your active study blocks and continue your semester streak.
+              </p>
+              <button
+                type="button"
+                className="as-btn as-transparent"
+                onClick={() => {
+                  setErrorMsg(null);
+                  setIsSignUp(false);
+                }}
+              >
+                Sign in
               </button>
             </div>
           </div>
         </div>
       </div>
-
-      {/* =================================================================== */}
-      {/* SLIDING FROSTED CURTAIN OVERLAY (@appvibed01 Signature Primitive)   */}
-      {/* =================================================================== */}
-      <motion.div
-        initial={false}
-        animate={{
-          x: isSignUp ? "0%" : "100%",
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 260,
-          damping: 25,
-        }}
-        className="hidden md:flex absolute top-0 bottom-0 w-1/2 z-20 p-8 sm:p-10 flex-col justify-between bg-panel-solid backdrop-blur-2xl shadow-2xl"
-        style={{
-          borderLeft: isSignUp ? "none" : "1px solid var(--border)",
-          borderRight: isSignUp ? "1px solid var(--border)" : "none",
-        }}
-      >
-        <div className="space-y-6">
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-accent/15 border border-accent/25 text-accent text-[11px] font-mono font-semibold">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>ACADEMIC INTEGRITY</span>
-          </div>
-
-          <div>
-            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-snug">
-              {isSignUp ? "Welcome Back to BH Planner" : "Begin Your Structured Semester"}
-            </h3>
-
-            <p className="text-xs sm:text-sm text-muted mt-3 leading-relaxed">
-              {isSignUp
-                ? "Access your active weekly timetable, inspect today's checklist, and run natural-language mutations with Academic Copilot."
-                : "Lock in your fixed college lectures and daily commute times. Let our Tier-1 deterministic buffer engine keep your syllabus on track."}
-            </p>
-          </div>
-
-          <div className="space-y-3 pt-2 font-mono text-xs text-muted">
-            <div className="flex items-center space-x-3">
-              <div className="size-6 rounded-lg bg-accent/15 flex items-center justify-center text-accent">
-                <Sparkles className="w-3.5 h-3.5" />
-              </div>
-              <span className="text-foreground font-medium">Tier-1 Deterministic Buffers</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="size-6 rounded-lg bg-accent/15 flex items-center justify-center text-accent">
-                <CalendarCheck className="w-3.5 h-3.5" />
-              </div>
-              <span className="text-foreground font-medium">Non-Overlapping Fixed Constraints</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="size-6 rounded-lg bg-accent/15 flex items-center justify-center text-accent">
-                <Hourglass className="w-3.5 h-3.5" />
-              </div>
-              <span className="text-foreground font-medium">Exam Runway Timeline Countdown</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Curtain Toggle Button */}
-        <div className="pt-6 border-t border-panel-border">
-          <p className="text-xs text-muted mb-3 font-mono">
-            {isSignUp ? "Already registered your curriculum?" : "Starting a new academic term?"}
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setErrorMsg(null);
-              setMode(isSignUp ? "signin" : "signup");
-            }}
-            className="group inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl border border-accent/40 bg-accent/10 text-accent hover:bg-accent hover:text-white font-semibold text-xs tracking-wide transition-all focus:outline-none focus:ring-2 focus:ring-accent active:scale-95 shadow-sm"
-          >
-            <span>{isSignUp ? "Sign In Instead" : "Create Account"}</span>
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </button>
-        </div>
-      </motion.div>
-    </div>
+    </>
   );
 }
+
+// Social Icons as in @appvibed01 component
+function SocialIcons() {
+  return (
+    <>
+      <button
+        type="button"
+        aria-label="Continue with Google"
+        className="as-social-icon focus:outline-none"
+        onClick={() => {}}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        aria-label="Continue with GitHub"
+        className="as-social-icon focus:outline-none"
+        onClick={() => {}}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        aria-label="Continue with Academic SSO"
+        className="as-social-icon focus:outline-none"
+        onClick={() => {}}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+          <path d="M6 12v5c3 3 9 3 12 0v-5" />
+        </svg>
+      </button>
+    </>
+  );
+}
+
+export default AuthSwitch;
