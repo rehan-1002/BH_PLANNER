@@ -13,7 +13,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <CaptureShield userEmail="student@bhplanner.internal" enableBlurProtection={true} enableWatermark={true}>
+    <CaptureShield enableBlurProtection={true} enableWatermark={false}>
       <div className="relative w-full min-h-screen flex flex-col pt-24 pb-16 px-4 sm:px-8 max-w-7xl mx-auto">
         {/* Sterling Gate: Kinetic Navigation Header */}
         <KineticNav />

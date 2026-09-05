@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CalendarDays, Flag, Clock, Plus, Trash2, ArrowRight } from "lucide-react";
 
 interface Milestone {
@@ -11,29 +11,7 @@ interface Milestone {
   weight: "High" | "Critical" | "Standard";
 }
 
-const defaultMilestones: Milestone[] = [
-  {
-    id: "m_1",
-    subject: "Engineering Mathematics",
-    title: "Midterm: Linear Algebra & Differential Equations",
-    examDate: "2026-09-28",
-    weight: "Critical",
-  },
-  {
-    id: "m_2",
-    subject: "Computer Systems & Networks",
-    title: "Final Lab Practical: Socket Programming",
-    examDate: "2026-10-14",
-    weight: "High",
-  },
-  {
-    id: "m_3",
-    subject: "Engineering Mathematics",
-    title: "Final Comprehensive Exam",
-    examDate: "2026-11-04",
-    weight: "Critical",
-  },
-];
+const STORAGE_KEY_MILESTONES = "bh_calendar_milestones";
 
 function calculateDaysRemaining(targetDateStr: string): number {
   const target = new Date(targetDateStr + "T00:00:00");
@@ -43,12 +21,35 @@ function calculateDaysRemaining(targetDateStr: string): number {
 }
 
 export default function CalendarPage() {
-  const [milestones, setMilestones] = useState<Milestone[]>(defaultMilestones);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [subject, setSubject] = useState("");
   const [title, setTitle] = useState("");
   const [examDate, setExamDate] = useState("");
   const [weight, setWeight] = useState<"High" | "Critical" | "Standard">("High");
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_MILESTONES);
+      if (stored) {
+        setMilestones(JSON.parse(stored));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsLoaded(true);
+    }
+  }, []);
+
+  const saveMilestones = (newMilestones: Milestone[]) => {
+    setMilestones(newMilestones);
+    try {
+      localStorage.setItem(STORAGE_KEY_MILESTONES, JSON.stringify(newMilestones));
+    } catch (e) {
+      console.error("Failed to save milestones to storage", e);
+    }
+  };
 
   const handleAddMilestone = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,9 +60,8 @@ export default function CalendarPage() {
       examDate,
       weight,
     };
-    setMilestones((prev) =>
-      [...prev, newM].sort((a, b) => a.examDate.localeCompare(b.examDate))
-    );
+    const updated = [...milestones, newM].sort((a, b) => a.examDate.localeCompare(b.examDate));
+    saveMilestones(updated);
     setSubject("");
     setTitle("");
     setExamDate("");
@@ -69,7 +69,8 @@ export default function CalendarPage() {
   };
 
   const handleDeleteMilestone = (id: string) => {
-    setMilestones((prev) => prev.filter((m) => m.id !== id));
+    const updated = milestones.filter((m) => m.id !== id);
+    saveMilestones(updated);
   };
 
   return (
@@ -93,7 +94,7 @@ export default function CalendarPage() {
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent-hover transition-colors"
+            className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent/90 transition-colors shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Exam Milestone</span>
@@ -101,71 +102,91 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* Runway Timeline Surface */}
-      <div className="space-y-4">
-        {milestones.map((m) => {
-          const daysLeft = calculateDaysRemaining(m.examDate);
-          const isUrgent = daysLeft <= 14;
+      {/* Runway Timeline Surface or Clean Empty State */}
+      {isLoaded && milestones.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-12 rounded-2xl bg-panel border border-panel-border text-center max-w-xl mx-auto my-8">
+          <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mb-4">
+            <CalendarDays className="w-6 h-6 text-accent" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-base font-semibold text-foreground mb-1.5">No Milestones Scheduled</h2>
+          <p className="text-xs text-muted max-w-sm mb-5 leading-relaxed">
+            Add your exam dates and assignment deadlines to compute a real-time countdown runway.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-accent text-white text-xs font-medium hover:bg-accent/90 transition-colors shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Exam Milestone</span>
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {milestones.map((m) => {
+            const daysLeft = calculateDaysRemaining(m.examDate);
+            const isUrgent = daysLeft <= 14;
 
-          return (
-            <div
-              key={m.id}
-              className="p-5 rounded-2xl bg-panel border border-panel-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-accent/50"
-            >
-              <div className="flex items-start space-x-4">
-                <div
-                  className={`p-3 rounded-xl shrink-0 ${
-                    m.weight === "Critical"
-                      ? "bg-status-missed/10 text-status-missed border border-status-missed/20"
-                      : "bg-accent/10 text-accent border border-accent/20"
-                  }`}
-                >
-                  <Flag className="w-5 h-5" strokeWidth={1.5} />
+            return (
+              <div
+                key={m.id}
+                className="p-5 rounded-2xl bg-panel border border-panel-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-accent/50"
+              >
+                <div className="flex items-start space-x-4">
+                  <div
+                    className={`p-3 rounded-xl shrink-0 ${
+                      m.weight === "Critical"
+                        ? "bg-status-missed/10 text-status-missed border border-status-missed/20"
+                        : "bg-accent/10 text-accent border border-accent/20"
+                    }`}
+                  >
+                    <Flag className="w-5 h-5" strokeWidth={1.5} />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs font-mono text-muted uppercase">
+                        {m.subject}
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-panel-solid border border-panel-border text-muted uppercase">
+                        {m.weight} Weight
+                      </span>
+                    </div>
+                    <h3 className="text-base font-semibold text-foreground font-sans">
+                      {m.title}
+                    </h3>
+                    <div className="text-xs font-mono text-muted flex items-center space-x-2">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>Target Date: {m.examDate}</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs font-mono text-muted uppercase">
-                      {m.subject}
-                    </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-panel-solid border border-panel-border text-muted uppercase">
-                      {m.weight} Weight
-                    </span>
+                {/* Countdown Badge & Delete */}
+                <div className="flex items-center space-x-4 sm:self-center self-end">
+                  <div
+                    className={`px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wide border ${
+                      isUrgent
+                        ? "bg-status-missed/15 text-status-missed border-status-missed/30"
+                        : "bg-accent/15 text-accent border-accent/30"
+                    }`}
+                  >
+                    {daysLeft > 0 ? `${daysLeft} DAYS RUNWAY` : "DUE TODAY / PASSED"}
                   </div>
-                  <h3 className="text-base font-semibold text-foreground font-sans">
-                    {m.title}
-                  </h3>
-                  <div className="text-xs font-mono text-muted flex items-center space-x-2">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Target Date: {m.examDate}</span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteMilestone(m.id)}
+                    className="p-2 rounded-lg text-muted hover:text-status-missed transition-colors"
+                    title="Remove Milestone"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-
-              {/* Countdown Badge & Delete */}
-              <div className="flex items-center space-x-4 sm:self-center self-end">
-                <div
-                  className={`px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wide border ${
-                    isUrgent
-                      ? "bg-status-missed/15 text-status-missed border-status-missed/30"
-                      : "bg-accent/15 text-accent border-accent/30"
-                  }`}
-                >
-                  {daysLeft > 0 ? `${daysLeft} DAYS RUNWAY` : "DUE TODAY / PASSED"}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteMilestone(m.id)}
-                  className="p-2 rounded-lg text-muted hover:text-status-missed transition-colors"
-                  title="Remove Milestone"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Add Milestone Modal */}
       {showAddModal && (

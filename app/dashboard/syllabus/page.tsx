@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BookOpen, Plus, CheckCircle2, Circle, Star, Upload, FileText, Trash2 } from "lucide-react";
 
 interface SyllabusTopicItem {
@@ -12,55 +12,45 @@ interface SyllabusTopicItem {
   completed: boolean;
 }
 
-const defaultTopics: SyllabusTopicItem[] = [
-  {
-    id: "top_01",
-    subject: "Engineering Mathematics",
-    module: "Module 1",
-    title: "Matrices & Eigenvalues",
-    weightage: 5,
-    completed: true,
-  },
-  {
-    id: "top_02",
-    subject: "Engineering Mathematics",
-    module: "Module 1",
-    title: "Diagonalization & Quadratic Forms",
-    weightage: 4,
-    completed: false,
-  },
-  {
-    id: "top_03",
-    subject: "Engineering Mathematics",
-    module: "Module 2",
-    title: "First & Second Order Differential Equations",
-    weightage: 5,
-    completed: false,
-  },
-  {
-    id: "top_04",
-    subject: "Engineering Mathematics",
-    module: "Module 2",
-    title: "Laplace Transforms & Applications",
-    weightage: 3,
-    completed: false,
-  },
-];
+const STORAGE_KEY_TOPICS = "bh_syllabus_topics";
 
 export default function SyllabusPage() {
-  const [topics, setTopics] = useState<SyllabusTopicItem[]>(defaultTopics);
+  const [topics, setTopics] = useState<SyllabusTopicItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [showIngestModal, setShowIngestModal] = useState(false);
   const [pastedText, setPastedText] = useState("");
-  const [subjectInput, setSubjectInput] = useState("Computer Systems & Networks");
+  const [subjectInput, setSubjectInput] = useState("");
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_TOPICS);
+      if (stored) {
+        setTopics(JSON.parse(stored));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsLoaded(true);
+    }
+  }, []);
+
+  const saveTopics = (newTopics: SyllabusTopicItem[]) => {
+    setTopics(newTopics);
+    try {
+      localStorage.setItem(STORAGE_KEY_TOPICS, JSON.stringify(newTopics));
+    } catch (e) {
+      console.error("Failed to save topics to storage", e);
+    }
+  };
 
   const toggleTopicCompleted = (id: string) => {
-    setTopics((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
+    const updated = topics.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t));
+    saveTopics(updated);
   };
 
   const deleteTopic = (id: string) => {
-    setTopics((prev) => prev.filter((t) => t.id !== id));
+    const updated = topics.filter((t) => t.id !== id);
+    saveTopics(updated);
   };
 
   const handleParseSyllabus = (e: React.FormEvent) => {
@@ -71,7 +61,6 @@ export default function SyllabusPage() {
       .filter((l) => l.length > 0);
 
     const parsed: SyllabusTopicItem[] = lines.map((line, idx) => {
-      // Auto-extract module if line starts with Module
       let module = "Core Curriculum";
       let title = line;
       if (line.toLowerCase().startsWith("module") || line.toLowerCase().startsWith("unit")) {
@@ -84,16 +73,17 @@ export default function SyllabusPage() {
 
       return {
         id: "top_parsed_" + Date.now() + "_" + idx,
-        subject: subjectInput,
+        subject: subjectInput || "General Curriculum",
         module,
         title,
-        weightage: 3 + (idx % 3), // baseline derived weight
+        weightage: 3 + (idx % 3),
         completed: false,
       };
     });
 
-    setTopics((prev) => [...prev, ...parsed]);
+    saveTopics([...topics, ...parsed]);
     setPastedText("");
+    setSubjectInput("");
     setShowIngestModal(false);
   };
 
@@ -122,7 +112,7 @@ export default function SyllabusPage() {
           <button
             type="button"
             onClick={() => setShowIngestModal(true)}
-            className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent-hover transition-colors"
+            className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent/90 transition-colors shadow-sm"
           >
             <Upload className="w-3.5 h-3.5" />
             <span>Ingest Syllabus Text</span>
@@ -154,80 +144,100 @@ export default function SyllabusPage() {
         </div>
       </div>
 
-      {/* Topics List Table */}
-      <div className="rounded-2xl bg-panel border border-panel-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead>
-              <tr className="border-b border-panel-border text-muted bg-panel-solid/40">
-                <th className="py-3 px-4 w-12 text-center">DONE</th>
-                <th className="py-3 px-4">MODULE / SUBJECT</th>
-                <th className="py-3 px-4">TOPIC TITLE</th>
-                <th className="py-3 px-4">WEIGHTAGE</th>
-                <th className="py-3 px-4 text-right">ACTION</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-panel-border/40 text-foreground">
-              {topics.map((t) => (
-                <tr
-                  key={t.id}
-                  className={`transition-colors ${
-                    t.completed ? "bg-status-done/5 opacity-80" : "hover:bg-canvas/30"
-                  }`}
-                >
-                  <td className="py-3 px-4 text-center">
-                    <button
-                      type="button"
-                      onClick={() => toggleTopicCompleted(t.id)}
-                      className="focus:outline-none"
-                    >
-                      {t.completed ? (
-                        <CheckCircle2 className="w-4 h-4 text-status-done" />
-                      ) : (
-                        <Circle className="w-4 h-4 text-muted hover:text-foreground" />
-                      )}
-                    </button>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-panel-solid border border-panel-border text-muted">
-                      {t.module}
-                    </span>
-                    <div className="text-[11px] text-muted mt-0.5 font-sans">{t.subject}</div>
-                  </td>
-                  <td className="py-3 px-4 font-sans font-medium text-foreground">
-                    <span className={t.completed ? "line-through text-muted" : ""}>{t.title}</span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center space-x-1 text-accent">
-                      {[1, 2, 3, 4, 5].map((lvl) => (
-                        <Star
-                          key={lvl}
-                          className={`w-3 h-3 ${
-                            lvl <= t.weightage ? "fill-accent text-accent" : "text-muted/30"
-                          }`}
-                        />
-                      ))}
-                      <span className="text-[10px] font-mono ml-1.5 text-muted">
-                        Level {t.weightage}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <button
-                      type="button"
-                      onClick={() => deleteTopic(t.id)}
-                      className="p-1 rounded text-muted hover:text-status-missed focus:outline-none"
-                      title="Remove Topic"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Topics List Table or Clean Empty State */}
+      {isLoaded && topics.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-12 rounded-2xl bg-panel border border-panel-border text-center max-w-xl mx-auto my-8">
+          <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mb-4">
+            <BookOpen className="w-6 h-6 text-accent" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-base font-semibold text-foreground mb-1.5">No Topics Ingested Yet</h2>
+          <p className="text-xs text-muted max-w-sm mb-5 leading-relaxed">
+            Upload or paste your course syllabus text to structure modules, assign weightage, and track topic execution.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowIngestModal(true)}
+            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-accent text-white text-xs font-medium hover:bg-accent/90 transition-colors shadow-sm"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Ingest Syllabus Text</span>
+          </button>
         </div>
-      </div>
+      ) : (
+        <div className="rounded-2xl bg-panel border border-panel-border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-mono">
+              <thead>
+                <tr className="border-b border-panel-border text-muted bg-panel-solid/40">
+                  <th className="py-3 px-4 w-12 text-center">DONE</th>
+                  <th className="py-3 px-4">MODULE / SUBJECT</th>
+                  <th className="py-3 px-4">TOPIC TITLE</th>
+                  <th className="py-3 px-4">WEIGHTAGE</th>
+                  <th className="py-3 px-4 text-right">ACTION</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-panel-border/40 text-foreground">
+                {topics.map((t) => (
+                  <tr
+                    key={t.id}
+                    className={`transition-colors ${
+                      t.completed ? "bg-status-done/5 opacity-80" : "hover:bg-canvas/30"
+                    }`}
+                  >
+                    <td className="py-3 px-4 text-center">
+                      <button
+                        type="button"
+                        onClick={() => toggleTopicCompleted(t.id)}
+                        className="focus:outline-none"
+                      >
+                        {t.completed ? (
+                          <CheckCircle2 className="w-4 h-4 text-status-done" />
+                        ) : (
+                          <Circle className="w-4 h-4 text-muted hover:text-foreground" />
+                        )}
+                      </button>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-panel-solid border border-panel-border text-muted">
+                        {t.module}
+                      </span>
+                      <div className="text-[11px] text-muted mt-0.5 font-sans">{t.subject}</div>
+                    </td>
+                    <td className="py-3 px-4 font-sans font-medium text-foreground">
+                      <span className={t.completed ? "line-through text-muted" : ""}>{t.title}</span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center space-x-1 text-accent">
+                        {[1, 2, 3, 4, 5].map((lvl) => (
+                          <Star
+                            key={lvl}
+                            className={`w-3 h-3 ${
+                              lvl <= t.weightage ? "fill-accent text-accent" : "text-muted/30"
+                            }`}
+                          />
+                        ))}
+                        <span className="text-[10px] font-mono ml-1.5 text-muted">
+                          Level {t.weightage}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => deleteTopic(t.id)}
+                        className="p-1 rounded text-muted hover:text-status-missed focus:outline-none"
+                        title="Remove Topic"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Ingestion Modal */}
       {showIngestModal && (
@@ -255,9 +265,10 @@ export default function SyllabusPage() {
                 <input
                   type="text"
                   required
+                  placeholder="e.g. Computer Science or Engineering Physics"
                   value={subjectInput}
                   onChange={(e) => setSubjectInput(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground"
+                  className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground placeholder:text-muted/50"
                 />
               </div>
 
@@ -271,7 +282,7 @@ export default function SyllabusPage() {
                   placeholder={`Module 1: Network Layer Protocols\nModule 1: IP Addressing and Subnetting\nModule 2: Transport Layer & TCP Congestion`}
                   value={pastedText}
                   onChange={(e) => setPastedText(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground font-mono"
+                  className="w-full p-3 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground font-mono placeholder:text-muted/50"
                 />
               </div>
 
@@ -285,7 +296,7 @@ export default function SyllabusPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent-hover transition-colors"
+                  className="px-5 py-2 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent/90 transition-colors shadow-sm"
                 >
                   Parse & Ingest Topics
                 </button>

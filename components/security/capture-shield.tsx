@@ -19,9 +19,9 @@ interface CaptureShieldProps {
  * - Print styles handled via @media print in globals.css.
  */
 export function CaptureShield({
-  userEmail = "student@bhplanner.internal",
+  userEmail = "",
   enableBlurProtection = true,
-  enableWatermark = true,
+  enableWatermark = false,
   children,
 }: CaptureShieldProps) {
   const [isBlurred, setIsBlurred] = useState(false);

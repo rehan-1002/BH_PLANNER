@@ -30,11 +30,9 @@ export default function OverviewPage() {
   const [generating, setGenerating] = useState(false);
   const [collegeHours, setCollegeHours] = useState({ start: "09:00", end: "16:30" });
   const [commuteMinutes, setCommuteMinutes] = useState(60);
-  const [examSubject, setExamSubject] = useState("Engineering Mathematics");
-  const [examDate, setExamDate] = useState("2026-09-28");
-  const [syllabusTopics, setSyllabusTopics] = useState(
-    "Linear Algebra & Matrices\nDifferential Equations\nMultivariable Calculus\nLaplace Transforms"
-  );
+  const [examSubject, setExamSubject] = useState("");
+  const [examDate, setExamDate] = useState("");
+  const [syllabusTopics, setSyllabusTopics] = useState("");
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -418,6 +416,7 @@ export default function OverviewPage() {
                   <input
                     type="text"
                     required
+                    placeholder="e.g. Engineering Mathematics"
                     value={examSubject}
                     onChange={(e) => setExamSubject(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground"
@@ -444,6 +443,7 @@ export default function OverviewPage() {
                 <textarea
                   rows={4}
                   required
+                  placeholder={"e.g.\nLinear Algebra & Matrices\nDifferential Equations\nMultivariable Calculus"}
                   value={syllabusTopics}
                   onChange={(e) => setSyllabusTopics(e.target.value)}
                   className="w-full p-3 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground font-mono"
