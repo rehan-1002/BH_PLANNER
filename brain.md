@@ -10,27 +10,32 @@
 ## 1. CURRENT PROJECT STATE
 
 ```
-Project Phase:      Milestone 6 Complete — Design System Alignment & Header Refactoring
-Current Milestone:  Unified Header Anchors, Kinetic Sliding Pill & Flat Design Tokens Enforced
-Overall Completion: Complete frontend shell, landing page, auth gateway, interactive dashboard 
-                    pages (Overview, Schedule, Syllabus, Copilot, Calendar), Tier-1 deterministic 
-                    spillover engine, plan service state layer, Supabase SQL schema, dual-provider 
-                    AI generation & Copilot API routes. KineticNav sliding pill and rounded-full container 
-                    implemented, purple dot removed. Header anchors cleanly decoupled with refined 
-                    frosted logo badge. Overview buttons and empty state card flattened with zero gradients.
-Last Implemented:   1. Kinetic Navigation Dock Refactoring (components/ui/kinetic-nav.tsx):
-                       - Removed floating purple dot.
-                       - Outer pill container: rounded-full border border-[rgba(147,112,219,0.18)] bg-[rgba(26,21,38,0.65)] backdrop-blur-xl px-2.5 py-1.5 shadow-2xl flex items-center gap-1.
-                       - Sliding kinetic pill backdrop: layoutId="kinetic-active-pill", bg-[#8b5cf6], spring stiffness: 380, damping: 30.
-                       - Magnetic pull on mouseMove (* 0.15) with spring reset on mouseLeave.
-                    2. Dashboard Header Layout & Logo Badge (app/dashboard/layout.tsx):
-                       - Clean fixed anchors: Top-Left ThemeToggle (z-50), Top-Center KineticNav (z-40), Top-Right refined frosted logo badge (z-50).
-                       - Removed duplicate header from app/layout.tsx to prevent double-rendering.
-                    3. Overview Action Buttons & Empty State Card (app/dashboard/overview/page.tsx):
-                       - Replaced all gradient styling with flat solid tokens: bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-medium px-4 py-2 rounded-xl text-xs.
-                       - Top-right action button uses clean 14px Lucide Plus icon.
-                       - Center empty state card uses pure frosted glass: bg-[rgba(26,21,38,0.45)] backdrop-blur-md border border-[rgba(147,112,219,0.12)] rounded-2xl.
-Current Blocker:    None. Production server active on port 3000.
+Project Phase:      Milestone 7 Complete — Scroll-Driven Storytelling & 21st.dev Alignment
+Current Milestone:  Scroll Storytelling, Sterling Gate Kinetic Nav, Button-with-icon, & Theme Contrast
+Overall Completion: Complete frontend shell, landing page with pinned 420vh scroll track driving sequential
+                    deblurring of problem statements (@kumail_ali_r), scroll-scrubbed calligraphy 
+                    (@kokonutd), animated kinetic JOIN CTA (@shadcnspace/components/button-witn-icon),
+                    and physical sliding curtain AuthGateway (@appvibed01). Full-screen Sterling Gate
+                    Kinetic Navigation (@hardikkashiyani123456788) with magnetic cursor physics and
+                    authoritative typography reveal. Crystal-clear contrast across light and dark themes
+                    with normalized .glass-panel tokens and theme-aware calligraphy ink.
+Last Implemented:   1. Scroll-Driven Storytelling Track (app/page.tsx):
+                       - Pinned 420vh scroll track with sticky h-screen viewport.
+                       - Sequential word/phrase deblurring: [0.02, 0.16] -> [0.16, 0.30] -> [0.30, 0.46].
+                       - Scroll-driven stroke drawing of "BH PLANNER" SVG calligraphy [0.48, 0.72].
+                       - Fade-in JOIN CTA [0.70, 0.78] with smooth scroll to embedded AuthSwitch gateway.
+                    2. Button With Icon (components/ui/button-with-icon.tsx):
+                       - 1:1 match of @shadcnspace/components/button-witn-icon with padding inversion (ps-6 pe-14 -> hover:ps-14 hover:pe-6).
+                       - Floating circular icon pill with ArrowUpRight sliding across and rotating 45deg on hover.
+                    3. Sterling Gate Kinetic Navigation (components/ui/kinetic-nav.tsx):
+                       - Magnetic dock with spring cursor attraction.
+                       - Authoritative full-screen Reveal layer: 01 OVERVIEW through 06 AUTHENTICATE.
+                       - Ripple hover animations, liquid indicator arrows, and system spec sidebar.
+                    4. Light Theme Contrast & Frosted Glass Normalization:
+                       - Fixed "PLANNER" SVG stroke to currentColor (crisp dark ink in light mode, bright in dark mode).
+                       - Replaced hardcoded rgba(26,21,38,...) across all pages and badges with .glass-panel utility.
+                       - Enhanced light mode variables: panel rgba(255,255,255,0.88), border rgba(139,92,246,0.22).
+Current Blocker:    None. Production server active on port 3000. All 12 routes pass typecheck and build cleanly.
 Next Priority:      Run supabase-schema.sql in Supabase SQL editor and connect live user auth sessions.
 ```
 
