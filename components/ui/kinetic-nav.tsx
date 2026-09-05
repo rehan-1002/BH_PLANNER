@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   Clock,
@@ -29,7 +29,10 @@ const navItems: NavItem[] = [
 
 /**
  * Individual Magnetic Kinetic Navigation Item
- * Implements magnetic hover pull, tilt reactivity, and spring press feedback.
+ * Implements exact magnetic cursor pull with:
+ * deltaX = (e.clientX - rect.left - rect.width / 2) * 0.2
+ * deltaY = (e.clientY - rect.top - rect.height / 2) * 0.2
+ * and spring transition { type: "spring", stiffness: 350, damping: 15 } on release.
  */
 function KineticNavItem({
   item,
@@ -39,29 +42,18 @@ function KineticNavItem({
   isActive: boolean;
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  // Magnetic spring pull
-  const springConfig = { damping: 15, stiffness: 200, mass: 0.2 };
-  const dx = useSpring(mouseX, springConfig);
-  const dy = useSpring(mouseY, springConfig);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    // Limit magnetic pull to 4px in each direction
-    const distanceX = Math.max(-6, Math.min(6, (e.clientX - centerX) * 0.2));
-    const distanceY = Math.max(-4, Math.min(4, (e.clientY - centerY) * 0.2));
-    mouseX.set(distanceX);
-    mouseY.set(distanceY);
+    const deltaX = (e.clientX - rect.left - rect.width / 2) * 0.2;
+    const deltaY = (e.clientY - rect.top - rect.height / 2) * 0.2;
+    setOffset({ x: deltaX, y: deltaY });
   };
 
   const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
+    setOffset({ x: 0, y: 0 });
   };
 
   const Icon = item.icon;
@@ -82,9 +74,8 @@ function KineticNavItem({
           layoutId="sterling-gate-kinetic-pill"
           transition={{
             type: "spring",
-            stiffness: 380,
-            damping: 28,
-            mass: 0.6,
+            stiffness: 400,
+            damping: 30,
           }}
           className="absolute inset-0 rounded-xl bg-panel-solid border border-panel-border shadow-sm z-0"
         />
@@ -92,23 +83,22 @@ function KineticNavItem({
 
       {/* Magnetic Floating Content */}
       <motion.div
-        style={{ x: dx, y: dy }}
-        whileHover={{ y: -1 }}
-        whileTap={{ scale: 0.94 }}
+        animate={{ x: offset.x, y: offset.y }}
+        transition={{
+          type: "spring",
+          stiffness: 350,
+          damping: 15,
+        }}
         className="relative z-10 flex items-center space-x-2"
       >
-        <motion.span
-          whileHover={{ rotate: isActive ? 0 : [-4, 4, 0], scale: 1.1 }}
-          transition={{ duration: 0.3 }}
-          className="inline-flex items-center justify-center"
-        >
+        <span className="inline-flex items-center justify-center">
           <Icon
             className={`w-4 h-4 transition-colors ${
               isActive ? "text-accent" : "text-muted"
             }`}
             strokeWidth={isActive ? 2.2 : 1.75}
           />
-        </motion.span>
+        </span>
 
         <span className="hidden sm:inline-block tracking-tight select-none">
           {item.name}
@@ -130,7 +120,7 @@ function KineticNavItem({
 /**
  * @hardikkashiyani123456788/components/sterling-gate-kinetic-navigation
  * Floating kinetic navigation dock with magnetic cursor pull,
- * elastic spring active pill, and micro-tilt icon reactivity.
+ * spring active pill indicator, and frosted glass styling.
  */
 export function KineticNav() {
   const pathname = usePathname();
@@ -138,7 +128,13 @@ export function KineticNav() {
   return (
     <nav
       aria-label="Dashboard Kinetic Navigation Dock"
-      className="relative flex items-center p-1.5 rounded-2xl bg-panel border border-panel-border backdrop-blur-2xl shadow-lg select-none"
+      className="relative flex items-center p-1.5 rounded-2xl shadow-lg select-none"
+      style={{
+        background: "rgba(26, 21, 38, 0.6)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        border: "1px solid rgba(147, 112, 219, 0.18)",
+      }}
     >
       <div className="flex items-center space-x-1">
         {navItems.map((item) => {

@@ -12,11 +12,11 @@ interface CaptureShieldProps {
 
 /**
  * CaptureShield Deterrence Component
- * Implements client-side screen deterrence: window blur protection, shortcut interception,
- * and subtle dynamic watermark.
- *
- * NOTE: As documented in 03-ARCHITECTURE.md, this is a deterrence mechanism only,
- * not an OS-level capture prevention.
+ * - Disables window blur locking during local development (process.env.NODE_ENV === "development").
+ * - In production, only triggers blur when user explicitly switches tabs (document.visibilityState === "hidden").
+ * - Never triggers on simple window focus loss or opening DevTools.
+ * - Suppresses right-click contextmenu and intercepts print keys.
+ * - Print styles handled via @media print in globals.css.
  */
 export function CaptureShield({
   userEmail = "student@bhplanner.internal",
@@ -30,55 +30,55 @@ export function CaptureShield({
   useEffect(() => {
     setSessionTime(new Date().toISOString().slice(0, 16).replace("T", " "));
 
-    if (!enableBlurProtection) return;
+    const isDev = process.env.NODE_ENV === "development";
 
-    const handleBlur = () => setIsBlurred(true);
-    const handleFocus = () => setIsBlurred(false);
+    // 1. Tab visibility listener (Production tab-switch only, never on simple focus loss/DevTools)
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        setIsBlurred(true);
-      } else {
-        setIsBlurred(false);
+      if (!isDev && enableBlurProtection) {
+        if (document.visibilityState === "hidden") {
+          setIsBlurred(true);
+        } else {
+          setIsBlurred(false);
+        }
       }
     };
 
+    // 2. Right-click contextmenu suppression
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    // 3. Print key interception
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Intercept PrintScreen
       if (e.key === "PrintScreen") {
         setIsBlurred(true);
         setTimeout(() => setIsBlurred(false), 2500);
       }
-      // Deter inspection shortcuts (F12, Ctrl+Shift+I)
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C"))
-      ) {
-        // Log deterrence notice
-        console.info("[BH Security] Developer tools key shortcut intercepted.");
-      }
     };
 
-    window.addEventListener("blur", handleBlur);
-    window.addEventListener("focus", handleFocus);
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("contextmenu", handleContextMenu);
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.removeEventListener("blur", handleBlur);
-      window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("contextmenu", handleContextMenu);
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [enableBlurProtection]);
 
   return (
     <div className="relative w-full h-full min-h-screen">
-      {/* Content */}
-      <div className={`transition-filter duration-200 ${isBlurred ? "filter blur-xl select-none pointer-events-none" : ""}`}>
+      {/* Protected content */}
+      <div
+        className={`transition-filter duration-200 ${
+          isBlurred ? "filter blur-xl select-none pointer-events-none" : ""
+        }`}
+      >
         {children}
       </div>
 
-      {/* Security Overlay when blurred */}
+      {/* Security Overlay when tab is hidden / PrintScreen intercepted */}
       {isBlurred && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-canvas/90 backdrop-blur-2xl">
           <div className="flex flex-col items-center p-6 rounded-xl border border-panel-border bg-panel text-center max-w-sm">

@@ -1,9 +1,15 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { TextReveal } from "@/components/ui/text-reveal";
 import { HandwritingText } from "@/components/ui/handwriting";
 
 export default function LandingPage() {
+  const [showJoin, setShowJoin] = useState(false);
+
   const problemStatements = [
     "Unorganised planning?",
     "No schedule?",
@@ -17,9 +23,9 @@ export default function LandingPage() {
         {/* Documented Sequence: 1. Unorganised planning? 2. No schedule? 3. ALL solution is here */}
         <TextReveal lines={problemStatements} className="items-center" />
 
-        {/* Documented Sequence: 4. Handwriting reveal of BH PLANNER */}
-        <div className="py-1">
-          <HandwritingText prefix="BH" suffix="PLANNER" />
+        {/* Documented Sequence: 4. Real SVG Handwriting reveal of BH PLANNER */}
+        <div className="py-1 w-full flex justify-center">
+          <HandwritingText onComplete={() => setShowJoin(true)} />
         </div>
 
         {/* Minimal subtitle explaining the instrument */}
@@ -27,16 +33,21 @@ export default function LandingPage() {
           Adaptive study scheduling around fixed college commitments, commute realities, syllabus coverage, and approaching exam deadlines.
         </p>
 
-        {/* Documented Sequence: 5. JOIN CTA */}
-        <div className="pt-2">
+        {/* Documented Sequence: 5. Frosted Glass JOIN CTA - Fades in on stroke completion */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: showJoin ? 1 : 0, y: showJoin ? 0 : 12 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="pt-2"
+        >
           <Link
             href="/auth"
-            className="group relative inline-flex items-center space-x-2.5 px-8 py-3.5 rounded-xl bg-accent text-white font-medium text-sm tracking-wide transition-all hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-canvas shadow-sm active:scale-95"
+            className="group relative inline-flex items-center space-x-2.5 px-8 py-3.5 rounded-xl bg-panel border border-accent/40 backdrop-blur-xl text-foreground font-medium text-sm tracking-wide transition-all hover:border-accent hover:bg-accent/15 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-canvas shadow-lg active:scale-95"
           >
-            <span>JOIN</span>
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
+            <span className="font-semibold text-accent">JOIN</span>
+            <ArrowRight className="w-4 h-4 text-accent transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
           </Link>
-        </div>
+        </motion.div>
       </div>
 
       {/* Subtle technical footer */}
