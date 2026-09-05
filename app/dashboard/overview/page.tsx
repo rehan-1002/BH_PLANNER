@@ -38,15 +38,24 @@ export default function OverviewPage() {
     const today = new Date().toISOString().slice(0, 10);
     setTodayDate(today);
 
-    const plan = PlanService.getActivePlan();
-    if (plan) {
-      setActivePlan(plan);
-
-      const dayIdx = plan.schedule.findIndex((d) => d.date === today);
+    const initialPlan = PlanService.getActivePlan();
+    if (initialPlan) {
+      setActivePlan(initialPlan);
+      const dayIdx = initialPlan.schedule.findIndex((d) => d.date === today);
       if (dayIdx !== -1) {
         setSelectedDayIndex(dayIdx);
       }
     }
+
+    PlanService.loadActivePlan().then((remotePlan) => {
+      if (remotePlan) {
+        setActivePlan(remotePlan);
+        const dayIdx = remotePlan.schedule.findIndex((d) => d.date === today);
+        if (dayIdx !== -1) {
+          setSelectedDayIndex(dayIdx);
+        }
+      }
+    });
   }, []);
 
   const handleStatusChange = (

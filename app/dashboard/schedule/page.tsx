@@ -11,10 +11,15 @@ export default function SchedulePage() {
   const [selectedBlock, setSelectedBlock] = useState<ScheduleBlock | null>(null);
 
   useEffect(() => {
-    const plan = PlanService.getActivePlan();
-    if (plan) {
-      setActivePlan(plan);
+    const initialPlan = PlanService.getActivePlan();
+    if (initialPlan) {
+      setActivePlan(initialPlan);
     }
+    PlanService.loadActivePlan().then((remotePlan) => {
+      if (remotePlan) {
+        setActivePlan(remotePlan);
+      }
+    });
   }, []);
 
   const currentDay = activePlan?.schedule[selectedDayIndex];
