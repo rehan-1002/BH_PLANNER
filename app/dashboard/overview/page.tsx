@@ -29,7 +29,7 @@ export default function OverviewPage() {
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [collegeHours, setCollegeHours] = useState({ start: "09:00", end: "16:30" });
-  const [commuteMinutes, setCommuteMinutes] = useState(60);
+  const [commuteMinutes, setCommuteMinutes] = useState<number | string>(60);
   const [examSubject, setExamSubject] = useState("");
   const [examDate, setExamDate] = useState("");
   const [syllabusTopics, setSyllabusTopics] = useState("");
@@ -162,7 +162,7 @@ export default function OverviewPage() {
         start_time: collegeHours.start,
         end_time: collegeHours.end,
       },
-      commuteMinutes: Number(commuteMinutes),
+      commuteMinutes: Number(commuteMinutes) || 0,
       examDates: allExams,
       syllabusTopics: topicsArray,
     };
@@ -473,8 +473,12 @@ export default function OverviewPage() {
                   type="number"
                   min="0"
                   max="240"
+                  placeholder="e.g. 60"
                   value={commuteMinutes}
-                  onChange={(e) => setCommuteMinutes(Number(e.target.value))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCommuteMinutes(val === "" ? "" : Number(val));
+                  }}
                   className="w-full px-3 py-2.5 rounded-lg bg-[#140f22] dark:bg-[#140f22] border border-panel-border text-xs text-foreground font-mono focus:border-accent focus:ring-1 focus:ring-accent outline-none"
                 />
               </div>

@@ -31,6 +31,8 @@ Last Implemented:   1. Auth redirect fix: unauthenticated users go to /auth not 
                    13. BHai Schedule Mutation Engine: schema auto-repair, zero time overlap enforcement, dual-provider fallback (Gemini 1.5 + Cohere command-r7b), and smart rescheduling
                    14. Calendar Auto-Sync: newly generated plans and exam milestones automatically render the 7-day study roadmap in the Calendar tab
                    15. Pre-populated Quick-Intake: Overview modal pre-populates stored syllabus topics and calendar exam milestones
+                   16. CaptureShield Hardening: Enabled globally in app/layout.tsx with keyup PrintScreen capture, clipboard clearing, screen recording getDisplayMedia blocking, Xbox Game Bar / Snipping Tool hotkey detection, 80px DevTools scaling threshold, and detached console getter probe
+                   17. Commute Minutes Input UX: Allowed empty string state so students can backspace and enter custom commute times smoothly without a stuck 0
 Current Blocker:    None.
 Next Priority:      Verify live and submit to Team Brainheaters.
 ```

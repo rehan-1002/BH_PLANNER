@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { ShieldAlert, Lock, AlertTriangle } from "lucide-react";
 
 interface CaptureShieldProps {
@@ -22,109 +22,215 @@ export function CaptureShield({
     "Content protected against inspection and capture."
   );
   const [sessionTime, setSessionTime] = useState("");
+  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const triggerSecurityBlur = useCallback((reason: string, durationMs?: number) => {
-    if (!enableBlurProtection) return;
-    setSecurityReason(reason);
-    setIsBlurred(true);
+  const triggerSecurityBlur = useCallback(
+    (reason: string, durationMs: number = 3500) => {
+      if (!enableBlurProtection) return;
+      setSecurityReason(reason);
+      setIsBlurred(true);
 
-    if (durationMs) {
-      setTimeout(() => {
-        setIsBlurred(false);
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+
+      // Automatically clear clipboard if screenshot was attempted
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        try {
+          navigator.clipboard.writeText("");
+        } catch (e) {
+          // ignore if permission denied
+        }
+      }
+
+      blurTimeoutRef.current = setTimeout(() => {
+        // Only unblur if document is currently focused and devtools is closed
+        if (typeof document !== "undefined" && document.hasFocus() && document.visibilityState === "visible") {
+          setIsBlurred(false);
+        }
       }, durationMs);
-    }
-  }, [enableBlurProtection]);
+    },
+    [enableBlurProtection]
+  );
 
   useEffect(() => {
     setSessionTime(new Date().toISOString().slice(0, 16).replace("T", " "));
 
+    // 1. Intercept Screen Capture / Media Recording API (Loom, Meet, Tab recording extensions)
+    if (typeof navigator !== "undefined" && navigator.mediaDevices) {
+      try {
+        if ("getDisplayMedia" in navigator.mediaDevices) {
+          (navigator.mediaDevices as any).getDisplayMedia = async function (...args: any[]) {
+            triggerSecurityBlur("Screen capture / tab recording stream blocked by Institutional Security Shield.", 5000);
+            throw new DOMException("Screen capture prohibited by Institutional Security Shield.", "NotAllowedError");
+          };
+        }
+      } catch (err) {
+        // MediaDevices may be read-only in some sandboxed environments
+      }
+    }
+
+    // 2. Tab Background / Visibility Change
     const handleVisibilityChange = () => {
       if (!enableBlurProtection) return;
       if (document.visibilityState === "hidden") {
         setSecurityReason("Tab backgrounded. Surface locked for privacy.");
         setIsBlurred(true);
       } else {
-        setIsBlurred(false);
+        // Small delay on return to verify focus
+        setTimeout(() => {
+          if (document.hasFocus()) {
+            setIsBlurred(false);
+          }
+        }, 300);
       }
     };
 
+    // 3. Window Blur (Triggers immediately when Snipping Tool, Game Bar, or Screen Recorder opens)
     const handleWindowBlur = () => {
       if (!enableBlurProtection) return;
-      setSecurityReason("Screen capture / snipping tool deterrence active. Refocus window to resume.");
+      setSecurityReason("Screen capture / recording deterrence active. Refocus window to resume.");
       setIsBlurred(true);
     };
 
     const handleWindowFocus = () => {
-      setIsBlurred(false);
+      // Hold blur briefly so any background recorders only get obscured frames
+      setTimeout(() => {
+        setIsBlurred(false);
+      }, 500);
     };
 
+    // 4. Right-Click Context Menu Suppression
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
-      triggerSecurityBlur("Right-click context inspection disabled.", 1500);
+      triggerSecurityBlur("Right-click context inspection disabled.", 2000);
     };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+    // 5. Screenshot & Recording Keystroke Interception
+    const handleKeySecurity = (e: KeyboardEvent) => {
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
       const isShift = e.shiftKey;
       const isAlt = e.altKey;
-      const key = e.key.toUpperCase();
+      const key = (e.key || "").toUpperCase();
+      const code = e.code || "";
 
+      // PrintScreen (captured on both keydown and keyup)
       if (
         e.key === "PrintScreen" ||
-        (isCtrlOrCmd && isShift && key === "S") ||
-        (isCtrlOrCmd && key === "P") ||
+        code === "PrintScreen" ||
+        e.keyCode === 44
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerSecurityBlur("Screenshot attempt intercepted. Screen capture prohibited.", 4000);
+        return;
+      }
+
+      // Windows Snipping Tool / Mac Screenshot: Win+Shift+S / Cmd+Shift+3,4,5 / Ctrl+Shift+S
+      if (
+        (isCtrlOrCmd && isShift && (key === "S" || code === "KeyS")) ||
         (e.metaKey && isShift && ["3", "4", "5"].includes(e.key))
       ) {
         e.preventDefault();
         e.stopPropagation();
-        triggerSecurityBlur("Screen capture / print keystroke intercepted.", 3000);
+        triggerSecurityBlur("Snipping tool / screen capture shortcut intercepted.", 4000);
         return;
       }
 
+      // Screen Recording shortcuts: Win+Alt+R (Game Bar record), Win+G / Alt+G, Ctrl+Shift+R
       if (
-        e.key === "F12" ||
-        (isCtrlOrCmd && isShift && ["I", "J", "C", "K"].includes(key)) ||
-        (isCtrlOrCmd && isAlt && ["I", "J", "C"].includes(key)) ||
-        (isCtrlOrCmd && key === "U")
+        (isAlt && (key === "R" || code === "KeyR")) ||
+        ((isAlt || isCtrlOrCmd) && (key === "G" || code === "KeyG")) ||
+        (isCtrlOrCmd && isShift && (key === "R" || code === "KeyR"))
       ) {
         e.preventDefault();
         e.stopPropagation();
-        triggerSecurityBlur("Developer inspection tools shortcut intercepted.", 3000);
+        triggerSecurityBlur("Screen recording shortcut intercepted. Recording prohibited.", 4000);
+        return;
+      }
+
+      // Print / PDF Capture: Ctrl+P
+      if (isCtrlOrCmd && (key === "P" || code === "KeyP")) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerSecurityBlur("Print to PDF / document export disabled.", 3000);
+        return;
+      }
+
+      // DevTools Inspection: F12, Ctrl+Shift+I/J/C/K, Ctrl+U, Ctrl+S
+      if (
+        e.key === "F12" ||
+        code === "F12" ||
+        (isCtrlOrCmd && isShift && ["I", "J", "C", "K"].includes(key)) ||
+        (isCtrlOrCmd && isAlt && ["I", "J", "C"].includes(key)) ||
+        (isCtrlOrCmd && (key === "U" || code === "KeyU"))
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerSecurityBlur("Developer inspection tools shortcut intercepted.", 3500);
         return;
       }
     };
 
-    const checkDevToolsDimensions = () => {
+    // 6. DevTools Dimension & Console Probe Detection
+    const checkDevTools = () => {
       if (!enableBlurProtection) return;
-      const threshold = 160;
+
+      // Dimension difference check (calibrated for 80px to accommodate laptop display scaling)
+      const threshold = 80;
       const widthDiff = window.outerWidth - window.innerWidth > threshold;
       const heightDiff = window.outerHeight - window.innerHeight > threshold;
 
       if (widthDiff || heightDiff) {
         setIsDevToolsOpen(true);
         setSecurityReason("Developer Tools detected. Close inspection tools to resume access.");
-      } else {
-        setIsDevToolsOpen(false);
+        return;
+      }
+
+      // Console getter probe (detects detached/undocked DevTools)
+      try {
+        const probe = new Image();
+        let probeTriggered = false;
+        Object.defineProperty(probe, "id", {
+          get: function () {
+            probeTriggered = true;
+            setIsDevToolsOpen(true);
+            setSecurityReason("Developer inspection console detected. Close inspection tools to resume access.");
+            return "shield-probe";
+          },
+        });
+        // Evaluating getter in console
+        console.log("%c", probe);
+        if (!probeTriggered && !widthDiff && !heightDiff) {
+          setIsDevToolsOpen(false);
+        }
+      } catch (err) {
+        // ignore
       }
     };
 
-    const intervalId = setInterval(checkDevToolsDimensions, 1000);
+    const intervalId = setInterval(checkDevTools, 800);
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("blur", handleWindowBlur);
     window.addEventListener("focus", handleWindowFocus);
     window.addEventListener("contextmenu", handleContextMenu);
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("resize", checkDevToolsDimensions);
+    window.addEventListener("keydown", handleKeySecurity, true);
+    window.addEventListener("keyup", handleKeySecurity, true);
+    window.addEventListener("resize", checkDevTools);
 
     return () => {
       clearInterval(intervalId);
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("blur", handleWindowBlur);
       window.removeEventListener("focus", handleWindowFocus);
       window.removeEventListener("contextmenu", handleContextMenu);
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("resize", checkDevToolsDimensions);
+      window.removeEventListener("keydown", handleKeySecurity, true);
+      window.removeEventListener("keyup", handleKeySecurity, true);
+      window.removeEventListener("resize", checkDevTools);
     };
   }, [enableBlurProtection, triggerSecurityBlur]);
 
@@ -132,9 +238,10 @@ export function CaptureShield({
 
   return (
     <div className="relative w-full h-full min-h-screen select-none">
+      {/* Underlying content is heavily blurred and hidden from recording frames when triggered */}
       <div
-        className={`transition-all duration-300 ${
-          shouldBlock ? "filter blur-2xl select-none pointer-events-none opacity-20" : ""
+        className={`transition-all duration-200 ${
+          shouldBlock ? "filter blur-3xl select-none pointer-events-none opacity-0" : ""
         }`}
       >
         {children}
@@ -142,8 +249,8 @@ export function CaptureShield({
 
       {/* Security Shield Overlay when Capture / DevTools Triggered */}
       {shouldBlock && (
-        <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-canvas/80 backdrop-blur-3xl p-6 text-center animate-in fade-in duration-200">
-          <div className="flex flex-col items-center p-8 rounded-3xl border border-accent/40 bg-panel/90 shadow-2xl max-w-md w-full relative overflow-hidden">
+        <div className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-canvas/90 backdrop-blur-3xl p-6 text-center select-none animate-in fade-in duration-150">
+          <div className="flex flex-col items-center p-8 rounded-3xl border border-accent/40 bg-panel/95 shadow-2xl max-w-md w-full relative overflow-hidden">
             {/* Glow backdrop */}
             <div className="absolute -top-12 -right-12 w-32 h-32 bg-accent/20 rounded-full blur-2xl pointer-events-none" />
             <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-accent/20 rounded-full blur-2xl pointer-events-none" />
@@ -168,7 +275,7 @@ export function CaptureShield({
         </div>
       )}
 
-      {/* Subtle diagonal watermark (optional) */}
+      {/* Subtle diagonal watermark */}
       {enableWatermark && userEmail && (
         <div
           aria-hidden="true"

@@ -64,14 +64,12 @@ export default async function DashboardLayout({
   }
 
   return (
-    <CaptureShield enableBlurProtection={true} enableWatermark={false}>
-      <div className="relative w-full min-h-screen flex flex-col pt-24 pb-16 px-4 sm:px-8 max-w-7xl mx-auto">
-        <KineticNav />
+    <div className="relative w-full min-h-screen flex flex-col pt-24 pb-16 px-4 sm:px-8 max-w-7xl mx-auto">
+      <KineticNav />
 
-        <main className="w-full flex-1 flex flex-col">
-          {children}
-        </main>
-      </div>
-    </CaptureShield>
+      <main className="w-full flex-1 flex flex-col">
+        {children}
+      </main>
+    </div>
   );
 }
