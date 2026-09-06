@@ -26,12 +26,13 @@ Last Implemented:   1. Auth redirect fix: unauthenticated users go to /auth not 
                     8. README.md overhauled with full technical documentation
                     9. docs/ suite regenerated: PRD, FRD, Architecture, Folder Mgmt, Design, TechStack
                    10. JOIN button fixed to navigate to /auth?mode=signup
-                   11. AI Engine upgraded: gemini-3.5-flash-lite + command-r7b (sub-5s timetable generation)
-                   12. Supabase Full Database Persistence: plans, schedule_blocks, exam_milestones, and syllabus_topics wired directly to Supabase tables
-                   13. Unique block key constraint resolution: block IDs globally scoped to plan to ensure error-free Postgres batch upserts
-                   14. All changes committed and deployed to Vercel production (tested live)
+                   11. Timetable Generation Engine: calibrated with real calendar dates, calculated exam countdown runways, concrete syllabus topic mapping, dinner breaks, and Tier-1 evening recovery buffer
+                   12. Copilot renamed to "BHai": updated in KineticNav, headers, and conversation workbench with zero changes to existing UI styling
+                   13. BHai Schedule Mutation Engine: schema auto-repair, zero time overlap enforcement, dual-provider fallback (Gemini 1.5 + Cohere command-r7b), and smart rescheduling
+                   14. Calendar Auto-Sync: newly generated plans and exam milestones automatically render the 7-day study roadmap in the Calendar tab
+                   15. Pre-populated Quick-Intake: Overview modal pre-populates stored syllabus topics and calendar exam milestones
 Current Blocker:    None.
-Next Priority:      Send email submission to Team Brainheaters with docs attached.
+Next Priority:      Verify live and submit to Team Brainheaters.
 ```
 
 ---

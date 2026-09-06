@@ -73,6 +73,32 @@ export default function OverviewPage() {
     }
   };
 
+  const openModalWithDefaults = () => {
+    try {
+      if (!examSubject || !examDate) {
+        const storedM = localStorage.getItem("bh_calendar_milestones");
+        if (storedM) {
+          const parsed = JSON.parse(storedM);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setExamSubject(parsed[0].subject || "");
+            setExamDate(parsed[0].examDate || "");
+          }
+        }
+      }
+      if (!syllabusTopics) {
+        const storedT = localStorage.getItem("bh_syllabus_topics");
+        if (storedT) {
+          const parsed = JSON.parse(storedT);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const topicTitles = parsed.map((t: any) => t.title).join("\n");
+            setSyllabusTopics(topicTitles);
+          }
+        }
+      }
+    } catch {}
+    setShowGeneratorModal(true);
+  };
+
   const handleGenerateNewPlan = async (e: React.FormEvent) => {
     e.preventDefault();
     setGenerating(true);
@@ -89,18 +115,55 @@ export default function OverviewPage() {
         weightage: 4,
       }));
 
+    // Collect all exams (current modal + all calendar milestones)
+    const allExams: { subject: string; date: string }[] = [{ subject: examSubject, date: examDate }];
+    try {
+      const storedMilestonesStr = localStorage.getItem("bh_calendar_milestones");
+      if (storedMilestonesStr) {
+        const storedMilestones = JSON.parse(storedMilestonesStr);
+        if (Array.isArray(storedMilestones)) {
+          storedMilestones.forEach((m: any) => {
+            if (
+              m.subject &&
+              m.examDate &&
+              !allExams.some((e) => e.subject.toLowerCase() === m.subject.toLowerCase())
+            ) {
+              allExams.push({ subject: m.subject, date: m.examDate });
+            }
+          });
+        }
+      }
+    } catch {}
+
+    // Auto-save exam to calendar milestones so user sees it in calendar immediately
+    try {
+      const storedMilestonesStr = localStorage.getItem("bh_calendar_milestones");
+      let milestonesList: any[] = storedMilestonesStr ? JSON.parse(storedMilestonesStr) : [];
+      if (
+        !milestonesList.some(
+          (m: any) =>
+            m.subject?.toLowerCase() === examSubject.toLowerCase() && m.examDate === examDate
+        )
+      ) {
+        milestonesList.push({
+          id: "m_" + Date.now(),
+          subject: examSubject,
+          title: `${examSubject} Examination`,
+          examDate: examDate,
+          weight: "Critical",
+        });
+        milestonesList.sort((a, b) => a.examDate.localeCompare(b.examDate));
+        localStorage.setItem("bh_calendar_milestones", JSON.stringify(milestonesList));
+      }
+    } catch {}
+
     const intakePayload = {
       collegeHours: {
         start_time: collegeHours.start,
         end_time: collegeHours.end,
       },
       commuteMinutes: Number(commuteMinutes),
-      examDates: [
-        {
-          subject: examSubject,
-          date: examDate,
-        },
-      ],
+      examDates: allExams,
       syllabusTopics: topicsArray,
     };
 
@@ -149,7 +212,7 @@ export default function OverviewPage() {
         <div className="mt-4 sm:mt-0 flex items-center space-x-3">
           <button
             type="button"
-            onClick={() => setShowGeneratorModal(true)}
+            onClick={openModalWithDefaults}
             className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-medium px-4 py-2 rounded-xl text-xs transition-colors shadow-none flex items-center gap-2 border border-[#8b5cf6]/20 active:scale-95"
           >
             <Plus className="w-3.5 h-3.5" strokeWidth={2} />
@@ -163,14 +226,14 @@ export default function OverviewPage() {
         <div
           className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono transition-all ${
             spilloverNotice.success
-              ? "bg-accent/10 border-accent/30 text-foreground"
+              ? "bg-status-done/10 border-status-done/30 text-status-done"
               : "bg-status-missed/10 border-status-missed/30 text-status-missed"
           }`}
         >
-          <div className="flex items-start space-x-3">
-            <ShieldCheck className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+          <div className="flex items-start space-x-2.5">
+            <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" />
             <div>
-              <span className="font-bold text-accent uppercase block">
+              <span className="font-semibold block">
                 {spilloverNotice.success
                   ? "Tier-1 Deterministic Spillover Executed"
                   : "Tier-1 Buffer Exhausted"}
@@ -186,7 +249,7 @@ export default function OverviewPage() {
               className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-accent text-white text-xs hover:bg-accent-hover shrink-0 font-sans"
             >
               <Bot className="w-3.5 h-3.5" />
-              <span>Escalate to AI Copilot</span>
+              <span>Escalate to BHai</span>
             </Link>
           )}
         </div>
@@ -204,7 +267,7 @@ export default function OverviewPage() {
           </p>
           <button
             type="button"
-            onClick={() => setShowGeneratorModal(true)}
+            onClick={openModalWithDefaults}
             className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-medium px-4 py-2 rounded-xl text-xs transition-colors shadow-none flex items-center gap-2 border border-[#8b5cf6]/20 active:scale-95"
           >
             <span>Configure Constraints & Generate</span>

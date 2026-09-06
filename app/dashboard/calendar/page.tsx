@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarDays, Flag, Clock, Plus, Trash2, ArrowRight } from "lucide-react";
+import { CalendarDays, Flag, Clock, Plus, Trash2, ArrowRight, BookOpen, Lock, ShieldCheck, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { Timetable } from "@/lib/schema";
+import { PlanService } from "@/lib/storage/plan-service";
 
 interface Milestone {
   id: string;
@@ -23,6 +26,7 @@ function calculateDaysRemaining(targetDateStr: string): number {
 
 export default function CalendarPage() {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [activePlan, setActivePlan] = useState<Timetable | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [subject, setSubject] = useState("");
@@ -31,6 +35,13 @@ export default function CalendarPage() {
   const [weight, setWeight] = useState<"High" | "Critical" | "Standard">("High");
 
   useEffect(() => {
+    // 1. Load active plan from storage
+    const plan = PlanService.getActivePlan();
+    if (plan) {
+      setActivePlan(plan);
+    }
+
+    // 2. Load stored milestones
     try {
       const stored = localStorage.getItem(STORAGE_KEY_MILESTONES);
       if (stored) {
@@ -143,18 +154,19 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col space-y-6">
+    <div className="w-full flex-1 flex flex-col space-y-8">
+      {/* Route Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-panel-border">
         <div>
           <div className="flex items-center space-x-2 text-xs font-mono text-accent uppercase tracking-wider mb-1">
             <span className="w-2 h-2 rounded-full bg-accent inline-block" />
-            <span>Exam Milestones & Runway</span>
+            <span>Academic Runway & Calendar</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Academic Runway & Calendar
           </h1>
           <p className="text-sm text-muted mt-1">
-            Multi-week countdown runway derived from stored exam dates.
+            Live multi-week countdown runway and 7-day planned study roadmap.
           </p>
         </div>
 
@@ -170,90 +182,230 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {isLoaded && milestones.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-12 rounded-2xl bg-panel border border-panel-border text-center max-w-xl mx-auto my-8">
-          <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mb-4">
-            <CalendarDays className="w-6 h-6 text-accent" strokeWidth={1.5} />
+      {/* 1. Exam Countdown Runway */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-mono text-muted uppercase tracking-wider flex items-center space-x-2">
+            <Flag className="w-3.5 h-3.5 text-accent" />
+            <span>Upcoming Exam Deadlines ({milestones.length})</span>
+          </h2>
+        </div>
+
+        {isLoaded && milestones.length === 0 ? (
+          <div className="p-8 rounded-2xl bg-panel border border-panel-border text-center max-w-xl mx-auto">
+            <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mx-auto mb-3">
+              <CalendarDays className="w-5 h-5 text-accent" strokeWidth={1.5} />
+            </div>
+            <h3 className="text-sm font-semibold text-foreground mb-1">No Exam Deadlines Recorded</h3>
+            <p className="text-xs text-muted max-w-sm mx-auto mb-4 leading-relaxed">
+              Add your exam dates or generate a study plan in the Overview tab to calculate your real-time countdown runway.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent/90 transition-colors shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Exam Milestone</span>
+            </button>
           </div>
-          <h2 className="text-base font-semibold text-foreground mb-1.5">No Milestones Scheduled</h2>
-          <p className="text-xs text-muted max-w-sm mb-5 leading-relaxed">
-            Add your exam dates and assignment deadlines to compute a real-time countdown runway.
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-accent text-white text-xs font-medium hover:bg-accent/90 transition-colors shadow-sm"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Exam Milestone</span>
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {milestones.map((m) => {
-            const daysLeft = calculateDaysRemaining(m.examDate);
-            const isUrgent = daysLeft <= 14;
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {milestones.map((m) => {
+              const daysLeft = calculateDaysRemaining(m.examDate);
+              const isUrgent = daysLeft <= 7;
 
-            return (
-              <div
-                key={m.id}
-                className="p-5 rounded-2xl bg-panel border border-panel-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-accent/50"
-              >
-                <div className="flex items-start space-x-4">
-                  <div
-                    className={`p-3 rounded-xl shrink-0 ${
-                      m.weight === "Critical"
-                        ? "bg-status-missed/10 text-status-missed border border-status-missed/20"
-                        : "bg-accent/10 text-accent border border-accent/20"
-                    }`}
-                  >
-                    <Flag className="w-5 h-5" strokeWidth={1.5} />
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs font-mono text-muted uppercase">
-                        {m.subject}
-                      </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-panel-solid border border-panel-border text-muted uppercase">
-                        {m.weight} Weight
-                      </span>
+              return (
+                <div
+                  key={m.id}
+                  className="p-4 rounded-2xl bg-panel border border-panel-border flex items-center justify-between gap-3 transition-all hover:border-accent/50"
+                >
+                  <div className="flex items-start space-x-3">
+                    <div
+                      className={`p-2.5 rounded-xl shrink-0 ${
+                        m.weight === "Critical"
+                          ? "bg-status-missed/10 text-status-missed border border-status-missed/20"
+                          : "bg-accent/10 text-accent border border-accent/20"
+                      }`}
+                    >
+                      <Flag className="w-4 h-4" strokeWidth={1.75} />
                     </div>
-                    <h3 className="text-base font-semibold text-foreground font-sans">
-                      {m.title}
-                    </h3>
-                    <div className="text-xs font-mono text-muted flex items-center space-x-2">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>Target Date: {m.examDate}</span>
+
+                    <div className="space-y-0.5">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[11px] font-mono text-muted uppercase">
+                          {m.subject}
+                        </span>
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-panel-solid border border-panel-border text-muted uppercase">
+                          {m.weight}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-semibold text-foreground font-sans line-clamp-1">
+                        {m.title}
+                      </h4>
+                      <div className="text-[11px] font-mono text-muted flex items-center space-x-1.5">
+                        <Clock className="w-3 h-3" />
+                        <span>{m.examDate}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Countdown Badge & Delete */}
-                <div className="flex items-center space-x-4 sm:self-center self-end">
-                  <div
-                    className={`px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wide border ${
-                      isUrgent
-                        ? "bg-status-missed/15 text-status-missed border-status-missed/30"
-                        : "bg-accent/15 text-accent border-accent/30"
-                    }`}
-                  >
-                    {daysLeft > 0 ? `${daysLeft} DAYS RUNWAY` : "DUE TODAY / PASSED"}
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <div
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold tracking-tight border ${
+                        isUrgent
+                          ? "bg-status-missed/15 text-status-missed border-status-missed/30"
+                          : "bg-accent/15 text-accent border-accent/30"
+                      }`}
+                    >
+                      {daysLeft > 0 ? `${daysLeft}D RUNWAY` : "DUE / PASSED"}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteMilestone(m.id)}
+                      className="p-1.5 rounded-lg text-muted hover:text-status-missed transition-colors"
+                      title="Remove Milestone"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteMilestone(m.id)}
-                    className="p-2 rounded-lg text-muted hover:text-status-missed transition-colors"
-                    title="Remove Milestone"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* 2. Planned 7-Day Academic Study Roadmap */}
+      <div className="space-y-4 pt-4 border-t border-panel-border/60">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <h2 className="text-xs font-mono text-muted uppercase tracking-wider flex items-center space-x-2">
+              <CalendarDays className="w-3.5 h-3.5 text-accent" />
+              <span>7-Day Planned Study Roadmap</span>
+            </h2>
+            <p className="text-xs text-muted">
+              Synchronized timetable schedule with institutional locks and focused study sessions.
+            </p>
+          </div>
+
+          {activePlan && (
+            <Link
+              href="/dashboard/overview"
+              className="text-xs font-mono text-accent hover:underline flex items-center space-x-1"
+            >
+              <span>Manage in Overview</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          )}
         </div>
-      )}
+
+        {!activePlan ? (
+          <div className="p-8 rounded-2xl bg-panel border border-panel-border text-center max-w-xl mx-auto">
+            <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent mx-auto mb-3">
+              <Sparkles className="w-5 h-5 text-accent" strokeWidth={1.5} />
+            </div>
+            <h3 className="text-sm font-semibold text-foreground mb-1">No Planned Roadmap Yet</h3>
+            <p className="text-xs text-muted max-w-sm mx-auto mb-4 leading-relaxed">
+              Generate an adaptive timetable in Overview to automatically populate your 7-day calendar roadmap here.
+            </p>
+            <Link
+              href="/dashboard/overview"
+              className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-lg bg-accent text-white text-xs font-medium hover:bg-accent/90 transition-colors shadow-sm"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Generate Study Plan</span>
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {activePlan.schedule.map((day) => {
+              const isExamDay = milestones.some((m) => m.examDate === day.date);
+              const matchingMilestone = milestones.find((m) => m.examDate === day.date);
+
+              return (
+                <div
+                  key={day.date}
+                  className={`p-4 rounded-2xl bg-panel border transition-all ${
+                    isExamDay
+                      ? "border-status-missed/40 bg-status-missed/[0.03]"
+                      : "border-panel-border hover:border-accent/40"
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b border-panel-border/60 gap-2">
+                    <div className="flex items-center space-x-2.5">
+                      <span className="font-mono text-xs font-bold text-accent uppercase px-2 py-0.5 rounded bg-accent/10 border border-accent/20">
+                        {day.day_of_week}
+                      </span>
+                      <span className="font-mono text-xs text-foreground font-semibold">
+                        {day.date}
+                      </span>
+                      {isExamDay && (
+                        <span className="px-2 py-0.5 rounded-md bg-status-missed/15 text-status-missed border border-status-missed/30 text-[10px] font-mono font-semibold flex items-center space-x-1">
+                          <Flag className="w-3 h-3" />
+                          <span>EXAM DAY: {matchingMilestone?.subject}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <span className="text-[11px] font-mono text-muted">
+                      {day.blocks.filter((b) => b.type === "study").length} Study Sessions ·{" "}
+                      {day.blocks.some((b) => b.is_locked) ? "College Scheduled" : "Independent Day"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {day.blocks.map((b) => (
+                      <div
+                        key={b.id}
+                        className={`p-3 rounded-xl border text-xs font-mono space-y-1 ${
+                          b.is_locked
+                            ? "bg-panel-solid/50 border-panel-border text-muted/90"
+                            : b.type === "buffer"
+                            ? "bg-accent/[0.04] border-accent/20 text-accent"
+                            : "bg-canvas/50 border-panel-border text-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between text-[10px] text-muted">
+                          <span className="flex items-center space-x-1">
+                            {b.is_locked ? (
+                              <Lock className="w-2.5 h-2.5 text-muted" />
+                            ) : (
+                              <BookOpen className="w-2.5 h-2.5 text-accent" />
+                            )}
+                            <span className="uppercase">{b.start_time} - {b.end_time}</span>
+                          </span>
+                          <span
+                            className={`px-1.5 py-0.2 rounded uppercase text-[9px] font-semibold ${
+                              b.is_locked
+                                ? "bg-panel border border-panel-border text-muted"
+                                : b.type === "buffer"
+                                ? "bg-accent/15 text-accent"
+                                : "bg-status-done/15 text-status-done"
+                            }`}
+                          >
+                            {b.type}
+                          </span>
+                        </div>
+
+                        <p className="font-sans font-medium text-xs text-foreground line-clamp-1">
+                          {b.title}
+                        </p>
+
+                        {b.subject && (
+                          <p className="text-[10px] text-muted line-clamp-1 font-mono">
+                            {b.subject}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Add Milestone Modal */}
       {showAddModal && (

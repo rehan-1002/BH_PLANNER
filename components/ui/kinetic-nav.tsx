@@ -19,7 +19,7 @@ const menuItems: MenuItem[] = [
   { name: "Overview", href: "/dashboard/overview", shape: "1", tag: "01" },
   { name: "Schedule", href: "/dashboard/schedule", shape: "2", tag: "02" },
   { name: "Syllabus", href: "/dashboard/syllabus", shape: "3", tag: "03" },
-  { name: "Copilot", href: "/dashboard/copilot", shape: "4", tag: "04" },
+  { name: "BHai", href: "/dashboard/copilot", shape: "4", tag: "04" },
   { name: "Calendar", href: "/dashboard/calendar", shape: "5", tag: "05" },
 ];
 

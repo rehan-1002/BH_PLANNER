@@ -19,7 +19,7 @@ export default function CopilotPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "copilot",
-      text: "Hello! I am your BH Planner Academic Copilot. Tell me how your schedule needs to adapt (e.g. 'Shift Friday study to Sunday afternoon' or 'Double math prep before Tuesday's test'). I will modify flexible blocks while strictly preserving your locked college hours.",
+      text: "Hello! I am BHai, your BH Planner Academic Assistant. Tell me how your schedule needs to adapt (e.g. 'Push today's missed session to tomorrow' or 'Double math prep before Tuesday's test'). I will modify flexible blocks while strictly preserving your locked college hours.",
     },
   ]);
 
@@ -40,7 +40,7 @@ export default function CopilotPage() {
         { sender: "user", text: inputMessage },
         {
           sender: "copilot",
-          text: "You don't have an active plan yet. Please generate an academic plan in the Overview tab first so I have constraints to work with!",
+          text: "You don't have an active plan yet. Please generate an academic plan in the Overview tab first so BHai has constraints to work with!",
         },
       ]);
       setInputMessage("");
@@ -78,7 +78,7 @@ export default function CopilotPage() {
           ...prev,
           {
             sender: "copilot",
-            text: "Failed to mutate schedule: " + (data.error || "Unknown error"),
+            text: "Failed to adapt schedule: " + (data.error || "Unknown error"),
           },
         ]);
       }
@@ -87,7 +87,7 @@ export default function CopilotPage() {
         ...prev,
         {
           sender: "copilot",
-          text: "Network error contacting Copilot: " + err?.message,
+          text: "Network error contacting BHai: " + err?.message,
         },
       ]);
     } finally {
@@ -112,7 +112,7 @@ export default function CopilotPage() {
             <span>Conversational Restructuring</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Academic Copilot
+            BHai
           </h1>
           <p className="text-sm text-muted mt-1">
             Propose conversational timetable mutations with strict locked-block protection.
@@ -144,13 +144,13 @@ export default function CopilotPage() {
               >
                 <p>{msg.text}</p>
 
-                {/* Proposed Mutation Card if Copilot generated a change */}
+                {/* Proposed Mutation Card if BHai generated a change */}
                 {msg.proposedPlan && (
                   <div className="p-3 rounded-xl bg-canvas/60 border border-panel-border space-y-2.5 font-mono text-[11px]">
                     <div className="flex items-center justify-between text-muted border-b border-panel-border/60 pb-2">
                       <span className="text-accent font-semibold flex items-center space-x-1.5">
                         <Sparkles className="w-3.5 h-3.5" />
-                        <span>Proposed Timetable Mutation</span>
+                        <span>BHai Proposed Mutation</span>
                       </span>
                       <span>{msg.proposedPlan.schedule.length} Days</span>
                     </div>
@@ -184,7 +184,7 @@ export default function CopilotPage() {
           {loading && (
             <div className="flex items-center space-x-3 text-xs text-muted font-mono">
               <RefreshCw className="w-4 h-4 animate-spin text-accent" />
-              <span>Analyzing schedule constraints & synthesizing mutation...</span>
+              <span>BHai is analyzing schedule constraints & synthesizing mutation...</span>
             </div>
           )}
         </div>
@@ -199,7 +199,7 @@ export default function CopilotPage() {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             disabled={loading}
-            placeholder="Type schedule adjustment (e.g. 'Push Saturday study block to 20:00')..."
+            placeholder="Ask BHai schedule adjustments (e.g. 'Push today's missed session to tomorrow')..."
             className="flex-1 px-4 py-2.5 rounded-lg bg-canvas/60 border border-panel-border text-xs text-foreground placeholder:text-muted/60 focus:outline-none focus:border-accent"
           />
           <button
