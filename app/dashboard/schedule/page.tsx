@@ -195,8 +195,8 @@ export default function SchedulePage() {
                   <span className="text-muted block text-[10px]">LOCKED COMMITMENT:</span>
                   <span className={selectedBlock.is_locked ? "text-status-locked font-semibold" : "text-status-done"}>
                     {selectedBlock.is_locked
-                      ? "YES — Fixed institutional time; exempt from local/AI moving"
-                      : "NO — Eligible for Tier-1 local spillover & AI re-triage"}
+                      ? "YES — Fixed institutional time; protected from rescheduling"
+                      : "NO — Flexible session eligible for rescheduling & adaptation"}
                   </span>
                 </div>
               </div>

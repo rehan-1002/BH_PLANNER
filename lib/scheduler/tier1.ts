@@ -116,14 +116,14 @@ export function executeTier1Spillover(
       success: false,
       updatedTimetable: updated,
       movedBlockTitle: missedBlock.title,
-      reason: "No unlocked buffer slot available within 72-hour window. Workload flagged for AI re-triage.",
+      reason: `No buffer slot available within 72 hours for "${missedBlock.title}". Ask BHai to reschedule your sessions.`,
       requiresReTriage: true,
     };
   }
 
   // Relocate workload into the buffer block
   targetBlock.type = "study";
-  targetBlock.title = `[Recovered] ${missedBlock.title}`;
+  targetBlock.title = `[Rescheduled] ${missedBlock.title}`;
   targetBlock.subject = missedBlock.subject;
   targetBlock.status = "pending";
   (targetBlock as any).recovered_from_id = missedBlock.id;
@@ -140,7 +140,7 @@ export function executeTier1Spillover(
       start_time: targetBlock.start_time,
       end_time: targetBlock.end_time,
     },
-    reason: `Workload moved to ${targetDay.day_of_week} (${targetDay.date}) at ${targetBlock.start_time}–${targetBlock.end_time} via Tier-1 deterministic spillover.`,
+    reason: `"${missedBlock.title}" is shifted to next day (${targetDay.day_of_week}, ${targetBlock.start_time}–${targetBlock.end_time}).`,
     requiresReTriage,
   };
 }

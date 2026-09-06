@@ -205,7 +205,7 @@ export default function OverviewPage() {
             Today&apos;s Execution Routine
           </h1>
           <p className="text-sm text-muted mt-1">
-            Track daily academic progress and observe deterministic Tier-1 spillover.
+            Track daily academic progress and adapt your study schedule.
           </p>
         </div>
 
@@ -221,7 +221,7 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      {/* Tier-1 Deterministic Spillover Banner */}
+      {/* Workload Shifted Banner */}
       {spilloverNotice && (
         <div
           className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono transition-all ${
@@ -235,8 +235,8 @@ export default function OverviewPage() {
             <div>
               <span className="font-semibold block">
                 {spilloverNotice.success
-                  ? "Tier-1 Deterministic Spillover Executed"
-                  : "Tier-1 Buffer Exhausted"}
+                  ? `${spilloverNotice.movedBlockTitle || "Workload"} is shifted to next day`
+                  : "Buffer Slots Full"}
               </span>
               <span className="text-muted leading-relaxed block mt-0.5">
                 {spilloverNotice.reason}
@@ -345,7 +345,7 @@ export default function OverviewPage() {
 
                         {isRecovered && (
                           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-accent/20 text-accent font-semibold">
-                            TIER-1 RECOVERED
+                            RESCHEDULED
                           </span>
                         )}
                       </div>
@@ -399,7 +399,7 @@ export default function OverviewPage() {
                             ? "bg-status-missed text-white"
                             : "bg-panel border border-panel-border text-muted hover:border-status-missed hover:text-status-missed"
                         }`}
-                        title="Mark Missed (Triggers Tier-1 Spillover)"
+                        title="Mark Missed (Shift to next available buffer)"
                       >
                         <AlertTriangle className="w-3.5 h-3.5" />
                         <span>Missed</span>
