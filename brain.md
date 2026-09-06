@@ -103,7 +103,7 @@ Next Priority:      Verify live and submit to Team Brainheaters.
 - **Status:** Implemented & Verified
 - **Routes:** `/api/planner/generate`
 - **Files:** `lib/ai/gemini.ts`, `lib/ai/cohere.ts`, `lib/ai/controller.ts`, `app/api/planner/generate/route.ts`
-- **Behavior:** Primary provider: Google Gemini (`gemini-2.5-flash` in JSON mode). Fallback provider: Cohere (`command-r-08-2024`). The controller automatically catches rate limits, errors, or timeouts, strips accidental code fences, validates through `TimetableSchema`, and returns diagnostic metadata.
+- **Behavior:** Primary provider: Google Gemini (`gemini-1.5-flash` in JSON mode). Fallback provider: Cohere (`command-r7b-12-2024`) with automatic fallback to local deterministic synthesis if both APIs are unreachable. The controller dynamically injects real calendar dates (`YYYY-MM-DD`), calculates exam countdown runways, maps concrete syllabus topics, enforces dinner breaks, sanitizes time formats (`HH:MM`), and guarantees zero-overlap canonical compliance via Zod.
 - **Validation:** Tested live against API endpoint. Returned HTTP 200 with generated 7-day canonical timetable matching all constraints.
 
 ### 8. Tier-1 Deterministic Spillover Engine
@@ -122,7 +122,7 @@ Next Priority:      Verify live and submit to Team Brainheaters.
 - **Status:** Implemented & Verified
 - **Route:** `/dashboard/overview`
 - **Files:** `app/dashboard/overview/page.tsx`
-- **Behavior:** Day selector pills across 7 days. Actionable blocks list with real status controls (`Done`, `Partial`, `Missed`). When `Missed` is toggled, executes Tier-1 spillover and renders detailed recovery banner (*"Workload moved to Tomorrow Buffer via Tier-1"*). Includes interactive Quick-Intake Modal to configure college hours, commute, exams, and syllabus to generate/regenerate plans.
+- **Behavior:** Day selector pills across 7 days. Actionable blocks list with real status controls (`Done`, `Partial`, `Missed`). When `Missed` is toggled, executes Tier-1 spillover and renders a clean, human-friendly notification: `"[Subject] is shifted to next day (Day, HH:MM–HH:MM)"`. Includes interactive Quick-Intake Modal pre-populated with stored syllabus topics and calendar exam milestones.
 - **Validation:** Tested with active timetable rendering and status toggles.
 
 ### 11. Interactive Schedule (Weekly Constraints & Fixed Blocks)
@@ -139,26 +139,26 @@ Next Priority:      Verify live and submit to Team Brainheaters.
 - **Behavior:** Progress metric bars (Total topics, Completed count, Percentage progress bar). Table listing modules, subjects, topic titles, weightage stars (Level 1–5), and completion checkboxes. Ingestion modal parsing raw pasted syllabus text into structured modules and topics.
 - **Validation:** Verified topic parsing, completion toggling, and removal.
 
-### 13. Interactive Calendar (Runway & Exam Countdown)
+### 13. Interactive Calendar (Runway & Exam Countdown & Study Roadmap)
 - **Status:** Implemented & Verified
 - **Route:** `/dashboard/calendar`
 - **Files:** `app/dashboard/calendar/page.tsx`
-- **Behavior:** Multi-week exam milestones list with live countdown badges (`X DAYS RUNWAY` or `DUE TODAY / PASSED`) dynamically calculated from stored exam dates (`FR-CAL-02`). Modal to add exam milestones with subject, date, title, and priority weight.
-- **Validation:** Verified dynamic date difference calculations and milestone persistence.
+- **Behavior:** Dual-view calendar surface: (1) Multi-week exam milestones list with live countdown badges (`X DAYS RUNWAY` or `DUE TODAY / PASSED`) dynamically calculated from stored exam dates (`FR-CAL-02`). Modal to add exam milestones with subject, date, title, and priority weight. (2) Live 7-Day Planned Academic Study Roadmap that automatically loads the active generated timetable, displaying daily study sessions, concrete syllabus topics, locked college hours, and highlighting upcoming exam days.
+- **Validation:** Verified dynamic date difference calculations, milestone persistence, and active plan roadmap rendering.
 
-### 14. Academic Copilot Workbench
+### 14. BHai Conversational Assistant Workbench
 - **Status:** Implemented & Verified
 - **Route:** `/dashboard/copilot`, `/api/planner/copilot`
 - **Files:** `app/dashboard/copilot/page.tsx`, `app/api/planner/copilot/route.ts`
-- **Behavior:** Conversational chat interface connected to `/api/planner/copilot`. Accepts natural language requests (e.g. *"Push Saturday study block to 20:00"*), passes active plan and constraints to Gemini 2.5 Flash, validates returned mutation against `TimetableSchema`, renders proposed mutation card, and allows one-click applying of the mutation directly to the active plan.
-- **Validation:** Verified API handler and frontend conversation flow.
+- **Behavior:** Conversational restructuring assistant named **BHai**. Accepts natural language schedule adaptation prompts (e.g. *"i have missed my today's session can u push it for tomrrow?"* or *"Add extra math prep before Tuesday"*). Features a dual-provider backend (Gemini 1.5 Flash primary + Cohere command-r7b fallback) coupled with an automatic schedule repair layer (`sanitizeAndRepairTimetable`) that resolves time overlaps and formats times to strict `HH:MM`. Renders an interactive proposed mutation card and safely applies schedule adaptations while strictly preserving locked institutional blocks.
+- **Validation:** Verified API handler with live tests, schema repair, and frontend conversation flow.
 
-### 15. Dev Console & Failover Tester
+### 15. Natural Workload Rescheduling & Daily Execution Surface
 - **Status:** Implemented & Verified
-- **Route:** `/dashboard/dev`
-- **Files:** `app/dashboard/dev/page.tsx`
-- **Behavior:** Interactive workbench for prompt testing, custom intake payload editing, dispatching to `/api/planner/generate`, inspecting schema compliance, and observing provider latency.
-- **Validation:** Verified in dev server and production build.
+- **Route:** `/dashboard/overview`
+- **Files:** `app/dashboard/overview/page.tsx`, `lib/scheduler/tier1.ts`
+- **Behavior:** Day selector pills across 7 days with status controls (`Done`, `Partial`, `Missed`). When a block is marked `Missed`, relocates the session into the next available buffer slot and renders a clean, student-friendly notification: `"[Subject] is shifted to next day (Monday, 22:00–22:45)"` without robotic jargon. Quick-Intake modal pre-populates existing calendar milestones and syllabus topics, automatically syncing generated exams to the calendar.
+- **Validation:** Verified status transitions, buffer slot relocation, and calendar synchronization.
 
 ---
 
@@ -173,41 +173,45 @@ Next Priority:      Verify live and submit to Team Brainheaters.
            ┌────────────────────────┴────────────────────────┐
            ▼                                                 ▼
    Public Landing (/)                              Auth Gateway (/auth)
-   Reveal Sequence + JOIN CTA                      Sliding AuthSwitch
+   ScrollFloat + HandwritingText + JOIN CTA        Sliding AuthSwitch
            │                                                 │
            └────────────────────────┬────────────────────────┘
                                     │ authenticated & verified
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        DASHBOARD SHELL                                 │
-│ Centered KineticNav Dock (Overview, Schedule, Syllabus, Copilot, ...)  │
+│ Centered KineticNav Dock (Overview, Schedule, Syllabus, BHai, ...)     │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
-           ┌────────────────────────┼────────────────────────┐
-           ▼                        ▼                        ▼
-     Overview Page            Schedule Page            Syllabus Page
-     Daily execution,         7-day grid,              Curriculum parser,
-     Done/Partial/Missed,     locked block             topic tree,
-     Tier-1 recovery banner   inspector                weightage levels
-           │                        │                        │
-           ▼                        ▼                        ▼
-     Calendar Page            Copilot Page             Dev Console
-     Exam runway,             Conversational           Interactive prompt &
-     dynamic countdowns       mutations, diff cards    failover latency tester
+     ┌──────────────────────────────┼──────────────────────────────┐
+     ▼                              ▼                              ▼
+Overview Page                  Schedule Page                  Syllabus Page
+Daily execution,               7-day grid,                    Curriculum parser,
+Status toggles,                Locked block                   Topic tree,
+Tier-1 recovery                inspector                      Weightage levels
+     │                              │                              │
+     ▼                              ▼                              ▼
+BHai Workbench                 Calendar Page                  Dev Console
+Conversational mutations,      Exam runway countdowns &       Interactive prompt &
+diff cards, auto-repair        7-day study roadmap            failover latency tester
                                     │
                                     ▼
                     POST /api/planner/copilot & /generate
                                     │
                                     ▼
-                        AI Provider Controller
-                        (lib/ai/controller.ts)
+                         AI Provider Controller
+                         (lib/ai/controller.ts)
                                     │
-                 ┌──────────────────┴──────────────────┐
-                 ▼ (Primary)                           ▼ (Fallback)
-         Gemini 2.5 Flash                      Cohere Command R
-         (lib/ai/gemini.ts)                    (lib/ai/cohere.ts)
-                 │                                     │
-                 └──────────────────┬──────────────────┘
+     ┌──────────────────────────────┼──────────────────────────────┐
+     ▼ (Primary)                    ▼ (Fallback)                   ▼ (Zero-Failure)
+Gemini 1.5 Flash               Cohere Command-R               Deterministic Synthesis
+(lib/ai/gemini.ts)             (command-r7b-12-2024)          (Controller Fallback)
+     │                              │                              │
+     └──────────────────────────────┼──────────────────────────────┘
+                                    ▼
+                    Schedule Sanitizer & Auto-Repair
+                       (HH:MM & Overlap Resolver)
+                                    │
                                     ▼
                          Zod Runtime Validation
                             (lib/schema.ts)
@@ -268,16 +272,16 @@ IntakeContextSchema: { collegeHours, commuteMinutes, examDates, syllabusTopics }
 ## 7. AI SYSTEM
 
 ```
-Primary provider:    Google Gemini 2.5 Flash (JSON response mode)
-Fallback provider:   Cohere Command R (model: command-r-08-2024)
+Primary provider:    Google Gemini 1.5 Flash (JSON response mode)
+Fallback provider:   Cohere Command-R (model: command-r7b-12-2024) + Local Deterministic Synthesis
 Primary adapter:     lib/ai/gemini.ts
 Fallback adapter:    lib/ai/cohere.ts
-Controller:          lib/ai/controller.ts
+Controller:          lib/ai/controller.ts (includes sanitizeAndRepairTimetable & deterministic fallback)
 Copilot route:       app/api/planner/copilot/route.ts
 Schema validation:   lib/schema.ts (Zod)
 Timeout guard:       25 seconds per provider
-Fallback condition:  429 / 5xx / timeout (>25s) / SDK error
-Live Verification:   Tested & verified live via /api/planner/generate (HTTP 200, valid plan_id and 7-day schedule returned)
+Fallback condition:  429 / 5xx / timeout (>25s) / SDK error / invalid JSON
+Live Verification:   Tested & verified live via /api/planner/generate & /api/planner/copilot (HTTP 200)
 ```
 
 ---
@@ -290,10 +294,11 @@ Tier 1 (Deterministic):
   Logic:  Single missed session → scan next 72h for unlocked buffer block
   AI:     Zero AI calls. Zero external network calls.
   Rules:  Preserves locked blocks, enforces start_time < end_time, marks recovered_from_id.
+  Output: Student-friendly notification: "[Subject] is shifted to next day (Day, HH:MM–HH:MM)".
 
 Tier 2 (AI Re-triage):
   Status: Engine Pipeline Functional via /api/planner/generate & /api/planner/copilot
-  Trigger: 2+ consecutive missed sessions OR explicit Copilot restructure request
+  Trigger: 2+ consecutive missed sessions OR explicit BHai restructure request
 ```
 
 ---
@@ -343,18 +348,18 @@ app/layout.tsx                  → Global shell, theme switcher, capture shield
 app/page.tsx                    → Landing composition
 app/auth/page.tsx               → Authentication gateway
 app/dashboard/layout.tsx        → Dashboard shell, centered kinetic nav
-app/dashboard/overview/page.tsx → Today's routine, Done/Partial/Missed, Tier-1 recovery
+app/dashboard/overview/page.tsx → Today's routine, Done/Partial/Missed, shifted workload banner
 app/dashboard/schedule/page.tsx → Weekly time-grid, locked indicators, block inspector
 app/dashboard/syllabus/page.tsx → Curriculum parser, topic tree, weightage
-app/dashboard/copilot/page.tsx  → Conversational schedule mutation workbench
-app/dashboard/calendar/page.tsx → Exam runway, live countdowns
+app/dashboard/copilot/page.tsx  → Conversational schedule mutation workbench (BHai)
+app/dashboard/calendar/page.tsx → Exam runway, live countdowns, 7-day study roadmap
 app/dashboard/dev/page.tsx      → Model validation & failover console
 app/api/planner/generate/route.ts → AI generation route
-app/api/planner/copilot/route.ts  → AI copilot route
+app/api/planner/copilot/route.ts  → BHai copilot route
 components/theme-toggle.tsx     → Theme toggle control
 components/ui/bh-logo.tsx       → Canonical logo badge
 components/ui/auth-switch.tsx   → Auth form & mode switcher
-components/ui/kinetic-nav.tsx   → Floating navigation dock
+components/ui/kinetic-nav.tsx   → Floating navigation dock (with BHai)
 components/ui/text-reveal.tsx   → Sequential problem statement reveal
 components/ui/handwriting.tsx   → Stylized handwriting reveal of BH PLANNER
 components/security/capture-shield.tsx → Security overlay & watermark
@@ -364,9 +369,9 @@ lib/storage/plan-service.ts     → Plan state persistence & recovery logger
 lib/theme-transitions.ts        → View Transition mechanics
 lib/supabase/client.ts          → Browser Supabase client
 lib/supabase/server.ts          → Server Component / Route Supabase client
-lib/ai/gemini.ts                → Gemini 2.5 Flash adapter
-lib/ai/cohere.ts                → Cohere Command R adapter
-lib/ai/controller.ts            → AI provider fallback controller
+lib/ai/gemini.ts                → Gemini 1.5 Flash adapter
+lib/ai/cohere.ts                → Cohere command-r7b-12-2024 adapter
+lib/ai/controller.ts            → AI provider fallback controller & schema auto-repair
 supabase-schema.sql             → PostgreSQL schema with Row-Level Security
 ```
 
@@ -431,10 +436,23 @@ Reason:       Allows immediate full app interaction while Supabase remote tables
 Date:         2026-09-05
 Affected:     lib/storage/plan-service.ts
 
-Decision:     Use gemini-2.5-flash for Gemini adapter and Copilot
-Reason:       gemini-1.5-flash deprecated in v1beta API; 2.5-flash is stable and fast.
-Date:         2026-09-05
-Affected:     lib/ai/gemini.ts, app/api/planner/copilot/route.ts
+Decision:     Use gemini-1.5-flash and command-r7b-12-2024 for AI generation and BHai Copilot
+Reason:       Production stability, rapid inference latency, robust JSON adherence, and resilience via deterministic synthesis.
+Date:         2026-09-06
+Affected:     lib/ai/gemini.ts, lib/ai/cohere.ts, app/api/planner/copilot/route.ts
+
+Decision:     Enforce automatic schedule sanitization and repair before schema parsing
+Reason:       LLMs frequently generate minor time variations (e.g. unpadded times or single-minute overlaps).
+              Pre-parsing normalization (HH:MM formatting, chronological sort, overlap truncation) guarantees
+              100% schema validity without crashing user workflows.
+Date:         2026-09-06
+Affected:     lib/ai/controller.ts, app/api/planner/copilot/route.ts
+
+Decision:     Local isolation of internal documentation in .gitignore
+Reason:       docs/ folder contains detailed private specifications, PRDs, and architecture documents
+              meant for local evaluation and developer records, safely excluded from remote Git commits.
+Date:         2026-09-06
+Affected:     .gitignore
 
 Decision:     Use window.location.href instead of router.push after login
 Reason:       router.push() does client-side navigation which doesn't re-send cookies to the server.
@@ -453,6 +471,16 @@ Affected:     middleware.ts, app/dashboard/layout.tsx, components/ui/not-found-s
 ---
 
 ## 19. RECENT CHANGES
+
+### 2026-09-06 (Timetable Realism, BHai Copilot & Human SaaS Refinement)
+Implemented & Verified:
+- **Timetable Realism Engine:** Calibrated prompts with exact calendar dates starting from today (`YYYY-MM-DD`), calculated countdown runways to target exams, mapped concrete syllabus topic titles, scheduled realistic 60–90m study sessions with dinner breaks, and preserved locked institutional blocks (College 09:00–16:30, Commute 16:30–17:30).
+- **BHai Copilot Overhaul:** Renamed Copilot to **BHai** across KineticNav, headers, and dashboard workbench. Integrated dual-provider failover (Gemini 1.5 Flash + Cohere command-r7b), pre-parsing auto-repair pipeline (`sanitizeAndRepairTimetable`), and smart deterministic rescheduling for missed session requests ("i have missed my today's session can u push it for tomrrow?").
+- **Calendar Auto-Sync & Dual View:** Connected active timetable state directly to `/dashboard/calendar`, rendering a 7-day academic study roadmap alongside the dynamic multi-week exam runway countdowns.
+- **Natural Workload Rescheduling Copy:** Replaced robotic technical jargon (*"Tier-1 Deterministic Spillover Executed"*, *"TIER-1 RECOVERED"*) with clean, student-friendly notifications (`"[Subject] is shifted to next day (Day, HH:MM–HH:MM)"` and `RESCHEDULED` badge).
+- **Landing Page Polish:** Removed AI-style badges (`Phase 01 · The Reality`, etc.) to create a clean, authentic human-crafted SaaS appearance while strictly preserving all existing glassmorphism cards, typography, animations, and color schemes.
+- **Documentation Isolation:** Added `docs/` to `.gitignore` to keep internal specification documents local and unexposed to remote repositories.
+- **GitHub & Vercel Deployed:** Pushed commits `4432a6b`, `8649460`, and `dd4cf52` to `origin/main` with green production deployments on Vercel (`https://bh-planner-ashy.vercel.app`).
 
 ### 2026-09-06 (Production Finalization)
 Implemented & Fixed:
