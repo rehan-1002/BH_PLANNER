@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { ShieldAlert, Lock, AlertTriangle } from "lucide-react";
+import { ShieldAlert, Lock, ArrowRight } from "lucide-react";
 
 interface CaptureShieldProps {
   userEmail?: string;
@@ -23,6 +23,7 @@ export function CaptureShield({
   );
   const [sessionTime, setSessionTime] = useState("");
   const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isArmedRef = useRef(false);
 
   const triggerSecurityBlur = useCallback(
     (reason: string, durationMs: number = 3500) => {
@@ -39,12 +40,11 @@ export function CaptureShield({
         try {
           navigator.clipboard.writeText("");
         } catch (e) {
-          // ignore if permission denied
+          // ignore
         }
       }
 
       blurTimeoutRef.current = setTimeout(() => {
-        // Only unblur if document is currently focused and devtools is closed
         if (typeof document !== "undefined" && document.hasFocus() && document.visibilityState === "visible") {
           setIsBlurred(false);
         }
@@ -53,8 +53,18 @@ export function CaptureShield({
     [enableBlurProtection]
   );
 
+  const dismissShield = useCallback(() => {
+    setIsBlurred(false);
+    setIsDevToolsOpen(false);
+  }, []);
+
   useEffect(() => {
     setSessionTime(new Date().toISOString().slice(0, 16).replace("T", " "));
+
+    // Arm blur protection only after initial page mount and layout stabilization
+    const armTimer = setTimeout(() => {
+      isArmedRef.current = true;
+    }, 1200);
 
     // 1. Intercept Screen Capture / Media Recording API (Loom, Meet, Tab recording extensions)
     if (typeof navigator !== "undefined" && navigator.mediaDevices) {
@@ -66,38 +76,33 @@ export function CaptureShield({
           };
         }
       } catch (err) {
-        // MediaDevices may be read-only in some sandboxed environments
+        // MediaDevices may be read-only in sandboxed environments
       }
     }
 
     // 2. Tab Background / Visibility Change
     const handleVisibilityChange = () => {
-      if (!enableBlurProtection) return;
+      if (!enableBlurProtection || !isArmedRef.current) return;
       if (document.visibilityState === "hidden") {
         setSecurityReason("Tab backgrounded. Surface locked for privacy.");
         setIsBlurred(true);
       } else {
-        // Small delay on return to verify focus
-        setTimeout(() => {
-          if (document.hasFocus()) {
-            setIsBlurred(false);
-          }
-        }, 300);
+        setIsBlurred(false);
       }
     };
 
-    // 3. Window Blur (Triggers immediately when Snipping Tool, Game Bar, or Screen Recorder opens)
+    // 3. Window Blur (Triggers when user activates external recording software, Snipping Tool, etc.)
     const handleWindowBlur = () => {
-      if (!enableBlurProtection) return;
+      if (!enableBlurProtection || !isArmedRef.current) return;
       setSecurityReason("Screen capture / recording deterrence active. Refocus window to resume.");
       setIsBlurred(true);
     };
 
     const handleWindowFocus = () => {
-      // Hold blur briefly so any background recorders only get obscured frames
-      setTimeout(() => {
-        setIsBlurred(false);
-      }, 500);
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+      setIsBlurred(false);
     };
 
     // 4. Right-Click Context Menu Suppression
@@ -114,7 +119,7 @@ export function CaptureShield({
       const key = (e.key || "").toUpperCase();
       const code = e.code || "";
 
-      // PrintScreen (captured on both keydown and keyup)
+      // PrintScreen (captured on both keydown and keyup across all operating systems)
       if (
         e.key === "PrintScreen" ||
         code === "PrintScreen" ||
@@ -172,44 +177,27 @@ export function CaptureShield({
       }
     };
 
-    // 6. DevTools Dimension & Console Probe Detection
+    // 6. Docked DevTools Detection (Carefully calibrated to ignore normal browser toolbars)
     const checkDevTools = () => {
-      if (!enableBlurProtection) return;
+      if (!enableBlurProtection || !isArmedRef.current) return;
 
-      // Dimension difference check (calibrated for 80px to accommodate laptop display scaling)
-      const threshold = 80;
-      const widthDiff = window.outerWidth - window.innerWidth > threshold;
-      const heightDiff = window.outerHeight - window.innerHeight > threshold;
+      // Normal browser UI: widthDiff is 0-24px, heightDiff (tabs, address bar, bookmarks) is 70-140px.
+      // Docked DevTools: docked side gives widthDiff > 250px; docked bottom gives heightDiff > 280px.
+      const widthDiff = window.outerWidth - window.innerWidth;
+      const heightDiff = window.outerHeight - window.innerHeight;
 
-      if (widthDiff || heightDiff) {
+      const isDockedSide = widthDiff > 260 && heightDiff < 180;
+      const isDockedBottom = heightDiff > 290 && widthDiff < 80;
+
+      if (isDockedSide || isDockedBottom) {
         setIsDevToolsOpen(true);
-        setSecurityReason("Developer Tools detected. Close inspection tools to resume access.");
-        return;
-      }
-
-      // Console getter probe (detects detached/undocked DevTools)
-      try {
-        const probe = new Image();
-        let probeTriggered = false;
-        Object.defineProperty(probe, "id", {
-          get: function () {
-            probeTriggered = true;
-            setIsDevToolsOpen(true);
-            setSecurityReason("Developer inspection console detected. Close inspection tools to resume access.");
-            return "shield-probe";
-          },
-        });
-        // Evaluating getter in console
-        console.log("%c", probe);
-        if (!probeTriggered && !widthDiff && !heightDiff) {
-          setIsDevToolsOpen(false);
-        }
-      } catch (err) {
-        // ignore
+        setSecurityReason("Developer Tools panel detected. Close inspection panel to resume.");
+      } else {
+        setIsDevToolsOpen(false);
       }
     };
 
-    const intervalId = setInterval(checkDevTools, 800);
+    const intervalId = setInterval(checkDevTools, 1000);
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("blur", handleWindowBlur);
@@ -220,6 +208,7 @@ export function CaptureShield({
     window.addEventListener("resize", checkDevTools);
 
     return () => {
+      clearTimeout(armTimer);
       clearInterval(intervalId);
       if (blurTimeoutRef.current) {
         clearTimeout(blurTimeoutRef.current);
@@ -249,8 +238,14 @@ export function CaptureShield({
 
       {/* Security Shield Overlay when Capture / DevTools Triggered */}
       {shouldBlock && (
-        <div className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-canvas/90 backdrop-blur-3xl p-6 text-center select-none animate-in fade-in duration-150">
-          <div className="flex flex-col items-center p-8 rounded-3xl border border-accent/40 bg-panel/95 shadow-2xl max-w-md w-full relative overflow-hidden">
+        <div
+          onClick={dismissShield}
+          className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-canvas/90 backdrop-blur-3xl p-6 text-center select-none animate-in fade-in duration-150 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="flex flex-col items-center p-8 rounded-3xl border border-accent/40 bg-panel/95 shadow-2xl max-w-md w-full relative overflow-hidden"
+          >
             {/* Glow backdrop */}
             <div className="absolute -top-12 -right-12 w-32 h-32 bg-accent/20 rounded-full blur-2xl pointer-events-none" />
             <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-accent/20 rounded-full blur-2xl pointer-events-none" />
@@ -267,7 +262,16 @@ export function CaptureShield({
               {securityReason}
             </p>
 
-            <div className="w-full py-2.5 px-4 rounded-xl bg-panel-solid border border-panel-border text-[11px] font-mono text-muted flex items-center justify-center space-x-2">
+            <button
+              type="button"
+              onClick={dismissShield}
+              className="w-full py-2.5 px-4 rounded-xl bg-accent text-white font-mono text-xs font-semibold shadow-lg hover:bg-accent/90 transition-all flex items-center justify-center space-x-2 mb-3"
+            >
+              <span>Resume Workspace</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="w-full py-2 px-4 rounded-xl bg-panel-solid border border-panel-border text-[11px] font-mono text-muted flex items-center justify-center space-x-2">
               <Lock className="w-3.5 h-3.5 text-accent shrink-0" />
               <span>Institutional Privacy Protocol</span>
             </div>
