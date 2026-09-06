@@ -25,9 +25,6 @@ export default function LandingPage() {
 
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto flex flex-col items-center">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-accent font-semibold mb-4 px-3 py-1 rounded-full glass-panel">
-            Phase 01 · The Reality
-          </span>
           <ScrollFloat
             animationDuration={0.9}
             stagger={0.032}
@@ -46,9 +43,6 @@ export default function LandingPage() {
 
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto flex flex-col items-center">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-accent font-semibold mb-4 px-3 py-1 rounded-full glass-panel">
-            Phase 02 · The Barrier
-          </span>
           <ScrollFloat
             animationDuration={0.9}
             stagger={0.035}
@@ -62,9 +56,6 @@ export default function LandingPage() {
 
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center">
         <div className="max-w-4xl mx-auto flex flex-col items-center">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-accent font-semibold mb-4 px-3 py-1 rounded-full glass-panel">
-            Phase 03 · The Resolution
-          </span>
           <ScrollFloat
             highlightWord="ALL"
             animationDuration={0.9}
@@ -79,10 +70,6 @@ export default function LandingPage() {
 
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center">
         <div className="w-full max-w-3xl mx-auto flex flex-col items-center space-y-8">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-accent font-semibold px-3 py-1 rounded-full glass-panel">
-            Phase 04 · The Instrument
-          </span>
-
           <div className="w-full flex justify-center py-2">
             <HandwritingText />
           </div>
